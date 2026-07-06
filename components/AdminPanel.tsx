@@ -195,25 +195,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const B2_KEY_ID = (import.meta.env.VITE_B2_KEY_ID as string) || '';
     const B2_APP_KEY = (import.meta.env.VITE_B2_APP_KEY as string) || '';
 
-    useEffect(() => {
-        if (editingBeat) {
-            setEditFormData({
-                title: editingBeat.title,
-                bpm: editingBeat.bpm,
-                key: editingBeat.key,
-                duration: editingBeat.duration,
-                tags: editingBeat.tags.join(', '),
-                artworkUrl: editingBeat.artworkUrl,
-                price_mp3: editingBeat.price_mp3,
-                price_wav: editingBeat.price_wav,
-                price_stems: editingBeat.price_stems,
-                description: editingBeat.description || '',
-            });
-            setEditMp3File(null);
-            setEditWavFile(null);
-            setEditZipFile(null);
-        }
-    }, [editingBeat]);
+   useEffect(() => {
+  const loadCoupons = async () => {
+    const { data } = await supabase.from('coupons').select('*');
+    if (data) setCoupons(data);
+  };
+  loadCoupons();
+}, []);
+
+useEffect(() => {
+    if (editingBeat) {
+        setEditFormData({
+            title: editingBeat.title,
+            bpm: editingBeat.bpm,
+            key: editingBeat.key,
+            duration: editingBeat.duration,
+            tags: editingBeat.tags.join(', '),
+            artworkUrl: editingBeat.artworkUrl,
+            price_mp3: editingBeat.price_mp3,
+            price_wav: editingBeat.price_wav,
+            price_stems: editingBeat.price_stems,
+            description: editingBeat.description || '',
+        });
+        setEditMp3File(null);
+        setEditWavFile(null);
+        setEditZipFile(null);
+    }
+}, [editingBeat]);
 
     // Upload para Backblaze B2 via S3-compatible API
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
@@ -422,7 +430,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
             setIsEditingSaving(false);
         }
     };
-    
+    const handleAddCoupon = async () => {
+  if (!newCouponCode || !newCouponDiscount) return;
+  const { data, error } = await supabase.from('coupons').insert([{ code: newCouponCode.toUpperCase(), discount_percent: newCouponDiscount }]).select().single();
+  if (!error && data) {
+    setCoupons(prev => [...prev, data]);
+    setNewCouponCode('');
+    setNewCouponDiscount(10);
+    addToast('Cupom criado!', 'success');
+  }
+};
+
+const handleDeleteCoupon = async (id: string) => {
+  await supabase.from('coupons').delete().eq('id', id);
+  setCoupons(prev => prev.filter(c => c.id !== id));
+  addToast('Cupom removido.', 'success');
+};
     const handleSettingsSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onUpdateSocialLinks(links);
@@ -698,6 +721,47 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
                         </section>
                     </div>
                 );
+                case 'coupons':
+    return (
+        <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
+            <Card className="p-8 border-green-900/30 bg-black/60 backdrop-blur-sm">
+                <h3 className="text-lg font-bold text-green-400 mb-6 font-mono uppercase tracking-widest border-b border-green-900/30 pb-2">
+                    [SYS.COUPONS_MANAGER]
+                </h3>
+                <div className="space-y-4 mb-6">
+                    {coupons.length === 0 ? (
+                        <p className="text-center text-green-800 py-4 font-mono uppercase text-xs">Nenhum cupom criado.</p>
+                    ) : (
+                        coupons.map(coupon => (
+                            <div key={coupon.id} className="flex items-center justify-between p-3 rounded-sm bg-black/20 border border-green-900/20">
+                                <div className="flex items-center gap-4">
+                                    <code className="text-green-400 font-mono text-sm">{coupon.code}</code>
+                                    <span className="text-green-600 font-mono text-sm">{coupon.discount_percent}% OFF</span>
+                                </div>
+                                <button onClick={() => handleDeleteCoupon(coupon.id)} className="text-green-700 hover:text-red-500 p-2 border border-transparent hover:border-red-500/30 rounded-sm transition-all">
+                                    <Trash2 className="w-4 h-4"/>
+                                </button>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </Card>
+            <Card className="p-8 border-green-900/30 bg-black/60 backdrop-blur-sm">
+                <h3 className="text-lg font-bold text-green-400 mb-6 font-mono uppercase tracking-widest border-b border-green-900/30 pb-2">
+                    [INPUT.NEW_COUPON]
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                    <InputField label="Código do Cupom" type="text" value={newCouponCode} onChange={(e) => setNewCouponCode(e.target.value)} placeholder="EX: LANCAMENTO10" />
+                    <InputField label="Desconto (%)" type="number" value={newCouponDiscount} onChange={(e) => setNewCouponDiscount(parseInt(e.target.value) || 0)} placeholder="10" />
+                </div>
+                <div className="flex justify-end pt-4">
+                    <button onClick={handleAddCoupon} className="bg-green-600 hover:bg-green-500 text-black font-bold font-mono tracking-widest uppercase py-3 px-6 rounded-sm transition-all border border-green-400">
+                        CRIAR CUPOM
+                    </button>
+                </div>
+            </Card>
+        </section>
+    );
             case 'settings':
                 return (
                     <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
@@ -811,6 +875,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
                             icon={<Settings />}
                             isActive={activeTab === 'settings'} 
                             onClick={() => setActiveTab('settings')} 
+                       <TabButton 
+                           label="CUPONS" 
+                           icon={<DollarSign />}
+                           isActive={activeTab === 'coupons'} 
+                           onClick={() => setActiveTab('coupons')} 
+                           />     
                         />
                     </div>
                 </div>
