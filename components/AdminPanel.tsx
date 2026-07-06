@@ -826,7 +826,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
                             <X className="w-6 h-6" />
                         </button>
                         <h2 className="text-xl font-bold text-green-400 mb-6 font-mono uppercase tracking-widest">
-                            [EDIT.TARGET] > <span className="text-white">{editingBeat.title}</span>
+                            {'[EDIT.TARGET] >'} <span className="text-white">{editingBeat.title}</span>
                         </h2>
                         <form onSubmit={handleEditSubmit} className="space-y-6">
                             <InputField label="Título" type="text" name="title" value={editFormData.title || ''} onChange={handleEditFormChange} required />
