@@ -223,7 +223,7 @@ useEffect(() => {
     }
 }, [editingBeat]);
 
-    // Upload para Backblaze B2 via S3-compatible API
+    // Upload para Backblaze B2 via API nativa
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
         if (!file) return null;
         try {
@@ -233,21 +233,65 @@ useEffect(() => {
             const cleanFileName = file.name.replace(/\s+/g, '-').toLowerCase();
             const uniqueFileName = `${Date.now()}-${cleanFileName}`;
 
-            // Upload direto para B2 via S3 API com autenticação básica
-            const uploadUrl = `https://${B2_ENDPOINT}/${B2_BUCKET}/${uniqueFileName}`;
-            const credentials = btoa(`${B2_KEY_ID}:${B2_APP_KEY}`);
-
-            const uploadRes = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
+            // 1. Autorizar conta B2
+            const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
                 headers: {
-                    'Content-Type': file.type,
-                    'Authorization': `Basic ${credentials}`,
+                    'Authorization': `Basic ${btoa(`${B2_KEY_ID}:${B2_APP_KEY}`)}`,
                 },
             });
+            if (!authRes.ok) throw new Error(`Auth B2 falhou: ${authRes.status}`);
+            const authData = await authRes.json();
 
+            // 2. Pegar bucketId (usar do auth ou buscar por nome)
+            let bucketId = authData.allowed?.bucketId;
+            if (!bucketId) {
+                const bucketsRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_buckets`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authData.authorizationToken,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}),
+                });
+                if (!bucketsRes.ok) throw new Error('Não foi possível listar buckets');
+                const bucketsData = await bucketsRes.json();
+                const bucket = bucketsData.buckets.find((b: any) => b.bucketName === B2_BUCKET);
+                if (!bucket) throw new Error(`Bucket "${B2_BUCKET}" não encontrado`);
+                bucketId = bucket.bucketId;
+            }
+
+            // 3. Pegar upload URL
+            const uploadUrlRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_get_upload_url`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': authData.authorizationToken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ bucketId }),
+            });
+            if (!uploadUrlRes.ok) throw new Error(`Pegar upload URL falhou: ${uploadUrlRes.status}`);
+            const uploadUrlData = await uploadUrlRes.json();
+
+            // 3. Calcular SHA1 do arquivo
+            const arrayBuffer = await file.arrayBuffer();
+            const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const sha1 = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // 4. Upload do arquivo
+            const uploadRes = await fetch(uploadUrlData.uploadUrl, {
+                method: 'POST',
+                body: file,
+                headers: {
+                    'Authorization': uploadUrlData.authorizationToken,
+                    'X-Bz-File-Name': encodeURIComponent(uniqueFileName),
+                    'Content-Type': file.type || 'application/octet-stream',
+                    'X-Bz-Sha1': sha1,
+                },
+            });
             if (!uploadRes.ok) {
-                throw new Error(`Upload falhou: ${uploadRes.status}`);
+                const errBody = await uploadRes.text();
+                throw new Error(`Upload falhou: ${uploadRes.status} - ${errBody}`);
             }
 
             // Retorna URL via Cloudflare CDN
