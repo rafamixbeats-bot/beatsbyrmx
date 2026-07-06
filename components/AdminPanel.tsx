@@ -881,7 +881,7 @@ const handleDeleteCoupon = async (id: string) => {
                            icon={<DollarSign />}
                            isActive={activeTab === 'coupons'} 
                            onClick={() => setActiveTab('coupons')} 
-                           />     
+                                
                         />
                     </div>
                 </div>
