@@ -223,47 +223,29 @@ useEffect(() => {
     }
 }, [editingBeat]);
 
-    // Upload para Backblaze B2 (servidor gera URL, browser envia direto)
+    // Upload para Backblaze B2 via proxy serverless (evita CORS)
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
         if (!file) return null;
         try {
             statusSetter('uploading');
             messageSetter(`Enviando ${file.name} para B2...`);
 
-            const cleanFileName = file.name.replace(/\s+/g, '-').toLowerCase();
-            const uniqueFileName = `${Date.now()}-${cleanFileName}`;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
 
-            // 1. Pegar upload URL do servidor (credenciais seguras)
-            const authRes = await fetch('/api/get-upload-url', { method: 'POST' });
-            if (!authRes.ok) {
-                const errData = await authRes.json();
-                throw new Error(errData.error || `Auth falhou: ${authRes.status}`);
-            }
-            const { uploadUrl, authorizationToken } = await authRes.json();
-
-            // 2. Calcular SHA1 do arquivo
-            const arrayBuffer = await file.arrayBuffer();
-            const hashBuffer = await crypto.subtle.digest('SHA-1', arrayBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const sha1 = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-            // 3. Upload direto para B2
-            const uploadRes = await fetch(uploadUrl, {
+            const uploadRes = await fetch('/api/upload-file', {
                 method: 'POST',
-                body: file,
-                headers: {
-                    'Authorization': authorizationToken,
-                    'X-Bz-File-Name': encodeURIComponent(uniqueFileName),
-                    'Content-Type': file.type || 'application/octet-stream',
-                    'X-Bz-Sha1': sha1,
-                },
+                body: formData,
             });
+
             if (!uploadRes.ok) {
-                const errBody = await uploadRes.text();
-                throw new Error(`Upload falhou: ${uploadRes.status} - ${errBody}`);
+                const errData = await uploadRes.json();
+                throw new Error(errData.error || `Upload falhou: ${uploadRes.status}`);
             }
 
-            return `${CDN_URL}/${uniqueFileName}`;
+            const data = await uploadRes.json();
+            return data.url;
         } catch (error: any) {
             console.error('Erro no upload B2:', error);
             statusSetter('error');
