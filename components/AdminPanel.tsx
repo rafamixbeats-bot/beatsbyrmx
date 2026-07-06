@@ -223,29 +223,32 @@ useEffect(() => {
     }
 }, [editingBeat]);
 
-    // Upload para Backblaze B2 via proxy serverless (evita CORS)
+    // Upload para Backblaze B2 via presigned POST (sem limite de tamanho, sem CORS)
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
         if (!file) return null;
         try {
             statusSetter('uploading');
             messageSetter(`Enviando ${file.name} para B2...`);
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileName', file.name);
+            const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}`);
+            if (!res.ok) throw new Error('Falha ao obter URL de upload');
+            const { uploadUrl, fields, cdnUrl } = await res.json();
 
-            const uploadRes = await fetch('/api/upload-file', {
+            const formData = new FormData();
+            Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+            formData.append('file', file);
+
+            const uploadRes = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData,
             });
 
             if (!uploadRes.ok) {
-                const errData = await uploadRes.json();
-                throw new Error(errData.error || `Upload falhou: ${uploadRes.status}`);
+                const errText = await uploadRes.text();
+                throw new Error(`Upload falhou: ${uploadRes.status} - ${errText}`);
             }
 
-            const data = await uploadRes.json();
-            return data.url;
+            return cdnUrl;
         } catch (error: any) {
             console.error('Erro no upload B2:', error);
             statusSetter('error');
