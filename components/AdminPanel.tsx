@@ -875,6 +875,7 @@ const handleDeleteCoupon = async (id: string) => {
                             icon={<Settings />}
                             isActive={activeTab === 'settings'} 
                             onClick={() => setActiveTab('settings')} 
+                       />
                        <TabButton 
                            label="CUPONS" 
                            icon={<DollarSign />}
