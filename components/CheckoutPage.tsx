@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Card from './ContactSection';
 import { CartItem, AdminSettings } from '../App';
-import { ShoppingCart, ArrowDownToLine, CreditCard, MessageCircle } from './icons';
+import { ShoppingCart, ArrowDownToLine, DollarSign, Download } from './icons';
 
 interface CheckoutPageProps {
     items: CartItem[];
@@ -82,7 +82,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                 <div className="space-y-6">
                     <Card className="p-8 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
                         <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                            <CreditCard className="w-6 h-6 text-indigo-400" /> Cartão de Crédito / Débito
+                           <DollarSign className="w-6 h-6 text-indigo-400" /> Cartão de Crédito / Débito
                         </h2>
                         <p className="text-slate-300 mb-6">Pagamento internacional via Stripe. Aceita Visa, Mastercard e mais.</p>
                         <button
@@ -96,7 +96,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
 
                     <Card className="p-8 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
                         <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                            <MessageCircle className="w-6 h-6 text-green-400" /> Pix / WhatsApp
+                            <Download className="w-6 h-6 text-green-400" /> Pix / WhatsApp
                         </h2>
                         <p className="text-slate-300 mb-6">Pague via Pix e confirme pelo WhatsApp.</p>
                         {settings.pixKey && (
