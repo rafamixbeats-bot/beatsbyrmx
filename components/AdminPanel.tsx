@@ -21,7 +21,7 @@ interface AdminPanelProps {
     onLogout: () => void;
 }
 
-type AdminTab = 'dashboard' | 'add' | 'kits' | 'settings';
+type AdminTab = 'dashboard' | 'add' | 'kits' | 'settings' | 'coupons';
 type SubmissionStatus = 'idle' | 'generating_url' | 'uploading' | 'saving' | 'error';
 
 
