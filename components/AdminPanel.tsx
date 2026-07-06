@@ -184,7 +184,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     // Settings State
     const [links, setLinks] = useState<SocialLinks>(socialLinks);
     const [adminConfig, setAdminConfig] = useState<AdminSettings>(settings);
-
+    const [coupons, setCoupons] = useState<{id: string; code: string; discount_percent: number; active: boolean}[]>([]);
+    const [newCouponCode, setNewCouponCode] = useState('');
+    const [newCouponDiscount, setNewCouponDiscount] = useState<number>(10);
     // B2 Cloud Storage - sempre conectado
     const [isCloudConnected] = useState<boolean>(true);
     const CDN_URL = (import.meta.env.VITE_B2_BUCKET_URL as string) || 'https://cdn.beatsbyrmx.com/beatsbyrmx-audio';
