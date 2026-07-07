@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import S3SDK from '@aws-sdk/client-s3';
+const { S3Client, PutObjectCommand } = S3SDK;
 
 export const config = {
   api: {

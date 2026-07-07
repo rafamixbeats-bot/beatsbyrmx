@@ -1,4 +1,5 @@
-import { S3Client, CreatePresignedPostCommand } from '@aws-sdk/client-s3';
+import S3SDK from '@aws-sdk/client-s3';
+const { S3Client, CreatePresignedPostCommand } = S3SDK;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

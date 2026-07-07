@@ -1,5 +1,7 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import S3SDK from '@aws-sdk/client-s3';
+import s3Presigner from '@aws-sdk/s3-request-presigner';
+const { S3Client, PutObjectCommand } = S3SDK;
+const { getSignedUrl } = s3Presigner;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
