@@ -118,7 +118,7 @@ const BeatPage: React.FC<BeatPageProps> = ({ beats, currentBeat, isPlaying, onPl
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-[10px] font-mono tracking-widest uppercase">
               <span className="bg-black px-3 py-1.5 rounded-sm border border-green-900/50 text-green-700">{beat.bpm} BPM</span>
-              <span className="bg-black px-3 py-1.5 rounded-sm border border-green-900/50 text-green-700">{beat.key}</span>
+              <span className="bg-black px-3 py-1.5 rounded-sm border border-green-900/50 text-green-700">{beat.key.replace(/M$/, 'm')}</span>
               <span className="bg-[#1e0538] text-purple-300 px-3 py-1.5 rounded-sm border border-purple-900/50">{beat.duration}</span>
             </div>
           </div>
