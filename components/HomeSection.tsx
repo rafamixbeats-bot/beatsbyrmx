@@ -41,14 +41,14 @@ const BeatRow: React.FC<{
                     </Link>
                     
                     {/* Metadata with Tech/Lab Font */}
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono tracking-widest uppercase">
-                        <span className="font-bold text-green-800">{beat.producer}</span>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono tracking-widest">
+                        <span className="font-bold text-green-800 uppercase">{beat.producer}</span>
                         <span className="text-green-900/50">::</span>
-                        <span className="text-green-700">{beat.bpm} BPM</span>
+                        <span className="text-green-700 uppercase">{beat.bpm} BPM</span>
                         <span className="text-green-900/50">::</span>
-                        <span className="text-green-700">{beat.key.replace(/M$/, 'm')}</span>
+                        <span className="text-green-700">{beat.key}</span>
                         <span className="text-green-900/50">::</span>
-                        <span className="bg-[#1e0538] text-purple-300 px-1.5 py-0.5 rounded-sm border border-purple-900/50">
+                        <span className="bg-[#1e0538] text-purple-300 px-1.5 py-0.5 rounded-sm border border-purple-900/50 uppercase">
                             {beat.duration}
                         </span>
                     </div>
@@ -187,10 +187,10 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                                         PROD_BY: {featuredBeat.producer}
                                     </p>
                                     
-                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4 text-[10px] text-green-800 font-mono tracking-widest uppercase">
-                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50">{featuredBeat.bpm} BPM</span>
-                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50">{featuredBeat.key.replace(/M$/, 'm')}</span>
-                                        <span className="bg-[#1e0538] text-purple-300 px-2 py-1 rounded-sm border border-purple-900/50 shadow-[0_0_5px_rgba(147,51,234,0.3)]">{featuredBeat.duration}</span>
+                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4 text-[10px] text-green-800 font-mono tracking-widest">
+                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50 uppercase">{featuredBeat.bpm} BPM</span>
+                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50">{featuredBeat.key}</span>
+                                        <span className="bg-[#1e0538] text-purple-300 px-2 py-1 rounded-sm border border-purple-900/50 shadow-[0_0_5px_rgba(147,51,234,0.3)] uppercase">{featuredBeat.duration}</span>
                                     </div>
                                 </div>
 
