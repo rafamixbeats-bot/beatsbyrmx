@@ -227,25 +227,22 @@ useEffect(() => {
             statusSetter('uploading');
             messageSetter(`Enviando ${file.name} para R2...`);
 
-            const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}`);
-            if (!res.ok) throw new Error('Falha ao obter URL de upload');
-            const { uploadUrl, fields, cdnUrl } = await res.json();
-
             const formData = new FormData();
-            Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
             formData.append('file', file);
+            formData.append('fileName', file.name);
 
-            const uploadRes = await fetch(uploadUrl, {
+            const res = await fetch('/api/upload-file', {
                 method: 'POST',
                 body: formData,
             });
 
-            if (!uploadRes.ok) {
-                const errText = await uploadRes.text();
-                throw new Error(`Upload falhou: ${uploadRes.status} - ${errText}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Upload falhou: ${res.status}`);
             }
 
-            return cdnUrl;
+            const { url } = await res.json();
+            return url;
         } catch (error: any) {
             console.error('Erro no upload R2:', error);
             statusSetter('error');
