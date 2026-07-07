@@ -145,7 +145,7 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => onSearch(e.target.value)}
-                                        placeholder="SEARCH_BEAT_DATABASE..."
+                                        placeholder=""
                                         className="w-full bg-transparent border-none outline-none text-green-400 placeholder-green-800/60 font-mono text-sm tracking-widest uppercase focus:ring-0"
                                         autoComplete="off"
                                     />

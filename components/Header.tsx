@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
                     <span className="text-green-500 mr-2 animate-pulse font-mono font-bold select-none text-xs">{'>'}</span>
                     <input
                         type="text"
-                        placeholder="SEARCH_DB..."
+                        placeholder=""
                         onChange={(e) => onSearch(e.target.value)}
                         className="w-full bg-transparent border-none outline-none text-green-400 placeholder-green-800/60 font-mono text-xs tracking-widest uppercase focus:ring-0"
                         autoComplete="off"
