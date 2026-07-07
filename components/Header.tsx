@@ -64,13 +64,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
                 <div className="absolute -bottom-px -left-px w-1.5 h-1.5 border-l border-b border-green-500/60"></div>
                 <div className="absolute -top-px -right-px w-1.5 h-1.5 border-r border-t border-green-500/60"></div>
             </div>
-
-             <button 
-                onClick={() => onNavigate('admin')}
-                className="bg-transparent hover:bg-green-500/10 text-slate-400 hover:text-green-400 font-bold font-mono text-xs uppercase tracking-widest py-2 px-5 border border-slate-700 hover:border-green-500/50 rounded-sm transition-all"
-             >
-                Login
-            </button>
           </div>
         </div>
       </div>
