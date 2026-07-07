@@ -4,6 +4,7 @@ import Card from './ContactSection';
 import { UploadCloud, LogOut, BarChart2, Settings, Trash2, Music, Package, DollarSign, InfoIcon, LayersIcon, SoundWave, User, EditIcon, X, AlertTriangleIcon, CheckCircleIcon } from './icons';
 import type { Beat, SocialLinks, DrumKit, AdminSettings } from '../App';
 import { useToast } from './ToastProvider';
+import { supabase } from '../supabaseClient';
 
 
 interface AdminPanelProps {
