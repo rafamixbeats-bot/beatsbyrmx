@@ -3,7 +3,6 @@ import Card from './ContactSection';
 import { CartItem, AdminSettings } from '../App';
 import { ShoppingCart, ArrowDownToLine, DollarSign, Download } from './icons';
 import { supabase } from '../supabaseClient';
-import { loadStripe } from '@stripe/stripe-js';
 
 interface CheckoutPageProps {
     items: CartItem[];
@@ -48,19 +47,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
             const data = await res.json();
             console.log('Stripe session:', data);
             
-            if (!data.sessionId) {
-                throw new Error('Session ID não retornado: ' + JSON.stringify(data));
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error('URL de checkout não retornada: ' + JSON.stringify(data));
             }
-            
-            const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-            console.log('Publishable key exists:', !!publishableKey);
-            
-            const stripe = await loadStripe(publishableKey);
-            if (!stripe) {
-                throw new Error('Falha ao carregar Stripe. Verifique a chave publicável.');
-            }
-            
-            await stripe.redirectToCheckout({ sessionId: data.sessionId });
         } catch (error: any) {
             console.error('Stripe error:', error);
             alert('Erro ao processar pagamento: ' + error.message);
