@@ -33,7 +33,7 @@ export const ShoppingCartComponent: React.FC<ShoppingCartProps> = ({ items, onRe
         </button>
       )}
 
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-black/95 backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-green-900/50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-black/95 backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-green-900/50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Tech decorative line */}
         <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-green-500/0 via-green-500/50 to-green-500/0"></div>
 
