@@ -1,3 +1,6 @@
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -11,64 +14,47 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const B2_KEY_ID = process.env.VITE_B2_KEY_ID;
-  const B2_APP_KEY = process.env.VITE_B2_APP_KEY;
-  const B2_BUCKET = process.env.VITE_B2_BUCKET || 'beatsbyrmx-audio';
+  const R2_ACCOUNT_ID = process.env.VITE_R2_ACCOUNT_ID;
+  const R2_ACCESS_KEY_ID = process.env.VITE_R2_ACCESS_KEY_ID;
+  const R2_SECRET_ACCESS_KEY = process.env.VITE_R2_SECRET_ACCESS_KEY;
+  const R2_BUCKET = process.env.VITE_R2_BUCKET || 'beatsbyrmx-audio';
+  const R2_PUBLIC_URL = process.env.VITE_R2_PUBLIC_URL || 'https://pub-a0e5da93f63a416daff8f99cdaeaefc3.r2.dev';
 
-  if (!B2_KEY_ID || !B2_APP_KEY) {
-    return res.status(500).json({ error: 'B2 credentials not configured on server' });
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ACCOUNT_ID) {
+    return res.status(500).json({ error: 'R2 credentials not configured' });
   }
 
   try {
-    const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${B2_KEY_ID}:${B2_APP_KEY}`).toString('base64')}`,
+    const { fileName, contentType } = await req.json();
+
+    if (!fileName) {
+      return res.status(400).json({ error: 'fileName required' });
+    }
+
+    const cleanFileName = fileName.replace(/\s+/g, '-').toLowerCase();
+    const uniqueFileName = `${Date.now()}-${cleanFileName}`;
+
+    const s3 = new S3Client({
+      region: 'auto',
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
       },
     });
 
-    if (!authRes.ok) {
-      const errText = await authRes.text();
-      return res.status(500).json({ error: `B2 auth failed: ${authRes.status} - ${errText}` });
-    }
-
-    const authData = await authRes.json();
-
-    let bucketId = authData.allowed?.bucketId;
-    if (!bucketId) {
-      const bucketsRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_buckets`, {
-        method: 'POST',
-        headers: {
-          'Authorization': authData.authorizationToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-      if (!bucketsRes.ok) throw new Error('Could not list buckets');
-      const bucketsData = await bucketsRes.json();
-      const bucket = bucketsData.buckets.find((b) => b.bucketName === B2_BUCKET);
-      if (!bucket) throw new Error(`Bucket "${B2_BUCKET}" not found`);
-      bucketId = bucket.bucketId;
-    }
-
-    const uploadUrlRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_get_upload_url`, {
-      method: 'POST',
-      headers: {
-        'Authorization': authData.authorizationToken,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ bucketId }),
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: uniqueFileName,
+      ContentType: contentType || 'application/octet-stream',
     });
 
-    if (!uploadUrlRes.ok) {
-      const errText = await uploadUrlRes.text();
-      return res.status(500).json({ error: `Get upload URL failed: ${uploadUrlRes.status} - ${errText}` });
-    }
-
-    const uploadUrlData = await uploadUrlRes.json();
+    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
     return res.status(200).json({
-      uploadUrl: uploadUrlData.uploadUrl,
-      authorizationToken: uploadUrlData.authorizationToken,
+      uploadUrl: presignedUrl,
+      fileName: uniqueFileName,
+      publicUrl: `${R2_PUBLIC_URL}/${uniqueFileName}`,
     });
 
   } catch (error) {

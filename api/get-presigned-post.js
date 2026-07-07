@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { S3Client, CreatePresignedPostCommand } from '@aws-sdk/client-s3';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,43 +11,44 @@ export default async function handler(req, res) {
   const { fileName } = req.query;
   if (!fileName) return res.status(400).json({ error: 'fileName required' });
 
-  const B2_KEY_ID = process.env.VITE_B2_KEY_ID;
-  const B2_APP_KEY = process.env.VITE_B2_APP_KEY;
-  const B2_BUCKET = process.env.VITE_B2_BUCKET || 'beatsbyrmx-audio';
-  const B2_ENDPOINT = 's3.us-east-005.backblazeb2.com';
-  const REGION = 'us-east-005';
+  const R2_ACCOUNT_ID = process.env.VITE_R2_ACCOUNT_ID;
+  const R2_ACCESS_KEY_ID = process.env.VITE_R2_ACCESS_KEY_ID;
+  const R2_SECRET_ACCESS_KEY = process.env.VITE_R2_SECRET_ACCESS_KEY;
+  const R2_BUCKET = process.env.VITE_R2_BUCKET || 'beatsbyrmx-audio';
+  const R2_PUBLIC_URL = process.env.VITE_R2_PUBLIC_URL || 'https://pub-a0e5da93f63a416daff8f99cdaeaefc3.r2.dev';
 
-  if (!B2_KEY_ID || !B2_APP_KEY) {
-    return res.status(500).json({ error: 'B2 credentials not configured' });
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ACCOUNT_ID) {
+    return res.status(500).json({ error: 'R2 credentials not configured' });
   }
 
   try {
     const cleanFileName = fileName.replace(/\s+/g, '-').toLowerCase();
     const uniqueFileName = `${Date.now()}-${cleanFileName}`;
 
-    const expiration = new Date(Date.now() + 3600 * 1000).toISOString();
+    const s3 = new S3Client({
+      region: 'auto',
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+      },
+    });
 
-    const policy = {
-      expiration,
-      conditions: [
-        { bucket: B2_BUCKET },
-        ['starts-with', '$key', ''],
+    const command = new CreatePresignedPostCommand({
+      Bucket: R2_BUCKET,
+      Key: uniqueFileName,
+      Expires: 3600,
+      Conditions: [
         ['content-length-range', 0, 10 * 1024 * 1024 * 1024],
       ],
-    };
+    });
 
-    const policyBase64 = Buffer.from(JSON.stringify(policy)).toString('base64');
-    const signature = createHmac('sha1', B2_APP_KEY).update(policyBase64).digest('base64');
+    const presigned = await s3.send(command);
 
     return res.status(200).json({
-      uploadUrl: `https://${B2_ENDPOINT}/${B2_BUCKET}`,
-      fields: {
-        key: uniqueFileName,
-        AWSAccessKeyId: B2_KEY_ID,
-        policy: policyBase64,
-        signature,
-      },
-      cdnUrl: `https://cdn.beatsbyrmx.com/beatsbyrmx-audio/${uniqueFileName}`,
+      uploadUrl: presigned.url,
+      fields: presigned.fields,
+      cdnUrl: `${R2_PUBLIC_URL}/${uniqueFileName}`,
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

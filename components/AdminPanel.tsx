@@ -187,13 +187,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [coupons, setCoupons] = useState<{id: string; code: string; discount_percent: number; active: boolean}[]>([]);
     const [newCouponCode, setNewCouponCode] = useState('');
     const [newCouponDiscount, setNewCouponDiscount] = useState<number>(10);
-    // B2 Cloud Storage - sempre conectado
+    // Cloudflare R2 Storage - sempre conectado
     const [isCloudConnected] = useState<boolean>(true);
-    const CDN_URL = (import.meta.env.VITE_B2_BUCKET_URL as string) || 'https://cdn.beatsbyrmx.com/beatsbyrmx-audio';
-    const B2_ENDPOINT = (import.meta.env.VITE_B2_ENDPOINT as string) || 's3.us-east-005.backblazeb2.com';
-    const B2_BUCKET = (import.meta.env.VITE_B2_BUCKET as string) || 'beatsbyrmx-audio';
-    const B2_KEY_ID = (import.meta.env.VITE_B2_KEY_ID as string) || '';
-    const B2_APP_KEY = (import.meta.env.VITE_B2_APP_KEY as string) || '';
+    const R2_PUBLIC_URL = (import.meta.env.VITE_R2_PUBLIC_URL as string) || 'https://pub-a0e5da93f63a416daff8f99cdaeaefc3.r2.dev';
 
    useEffect(() => {
   const loadCoupons = async () => {
@@ -223,12 +219,12 @@ useEffect(() => {
     }
 }, [editingBeat]);
 
-    // Upload para Backblaze B2 via presigned POST (sem limite de tamanho, sem CORS)
+    // Upload para Cloudflare R2 via presigned POST
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
         if (!file) return null;
         try {
             statusSetter('uploading');
-            messageSetter(`Enviando ${file.name} para B2...`);
+            messageSetter(`Enviando ${file.name} para R2...`);
 
             const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}`);
             if (!res.ok) throw new Error('Falha ao obter URL de upload');
@@ -250,7 +246,7 @@ useEffect(() => {
 
             return cdnUrl;
         } catch (error: any) {
-            console.error('Erro no upload B2:', error);
+            console.error('Erro no upload R2:', error);
             statusSetter('error');
             messageSetter(`Erro no upload: ${error.message}`);
             return null;
@@ -488,7 +484,7 @@ const handleDeleteCoupon = async (id: string) => {
                                     </h4>
                                     <p className="text-[10px] text-green-800 font-mono uppercase mt-1">
                                         {isCloudConnected 
-                                            ? 'BACKEND DETECTED. GOOGLE CLOUD STORAGE ACTIVE.' 
+                                            ? 'BACKEND DETECTED. CLOUDFLARE R2 STORAGE ACTIVE.' 
                                             : 'NO BACKEND DETECTED. USING LOCAL STORAGE (BROWSER MEMORY). HOST TO ENABLE CLOUD.'}
                                     </p>
                                 </div>
