@@ -135,12 +135,8 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                      {/* Header de Mídia do Cubo */}
                      <div className="relative p-8 border-b border-green-900/30 bg-gradient-to-b from-green-900/5 to-transparent">
                         
-                        {/* --- BARRA DE PESQUISA ESTILO LABORATÓRIO/QUÍMICO --- */}
+                        {/* --- BARRA DE PESQUISA --- */}
                         <div className="mb-10 w-full max-w-2xl mx-auto">
-                            <div className="flex justify-between items-end px-1 mb-1 select-none opacity-70">
-                                <span className="text-[10px] font-mono text-green-500 tracking-widest">[SYS.SEARCH.V3]</span>
-                                <span className="text-[10px] font-mono text-green-500 tracking-widest">QUERY_DB</span>
-                            </div>
                             <div className="relative group/search">
                                 <div className="absolute -inset-0.5 bg-green-500/20 rounded-sm blur opacity-0 group-focus-within/search:opacity-100 transition duration-500"></div>
                                 <div className="relative flex items-center bg-black border border-green-800 rounded-sm p-3 backdrop-blur-sm transition-colors group-focus-within/search:border-green-400">

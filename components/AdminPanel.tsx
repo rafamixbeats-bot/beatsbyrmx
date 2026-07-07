@@ -307,7 +307,7 @@ useEffect(() => {
                 title: title.toUpperCase(),
                 producer,
                 bpm: Number(bpm),
-                key: key.toUpperCase(),
+                key: key.toUpperCase().replace(/([A-Z]#?)M\b/g, '$1m'),
                 duration,
                 tags: tags.split(',').map(t => t.trim()).filter(Boolean),
                 artworkUrl: generatedArtworkUrl,
@@ -403,7 +403,7 @@ useEffect(() => {
             const updatedData: Partial<Beat> = {
                 ...restData,
                 title: editFormData.title?.toUpperCase(),
-                key: editFormData.key?.toUpperCase(),
+                key: editFormData.key?.toUpperCase().replace(/([A-Z]#?)M\b/g, '$1m'),
                 tags: typeof tags === 'string' ? tags.split(',').map(t => t.trim()).filter(Boolean) : editingBeat.tags,
             };
             if (newMp3Url) { updatedData.audioPreviewUrl = newMp3Url; updatedData.downloadUrl = newMp3Url; }
