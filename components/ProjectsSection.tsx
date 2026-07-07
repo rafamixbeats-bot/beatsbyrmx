@@ -33,7 +33,7 @@ export const ShoppingCartComponent: React.FC<ShoppingCartProps> = ({ items, onRe
         </button>
       )}
 
-      <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-black/95 backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-green-900/50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-sm bg-black/95 backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-green-900/50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Tech decorative line */}
         <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-green-500/0 via-green-500/50 to-green-500/0"></div>
 
@@ -49,7 +49,7 @@ export const ShoppingCartComponent: React.FC<ShoppingCartProps> = ({ items, onRe
             </button>
           </div>
 
-          <div className="flex-grow p-6 overflow-y-auto custom-scrollbar">
+          <div className="flex-grow p-6 pb-24 overflow-y-auto custom-scrollbar">
             {items.length === 0 ? (
               <div className="text-center pt-20 border border-dashed border-green-900/30 rounded-sm p-8 bg-green-900/5 mx-4 animate-fade-in">
                 <div className="w-16 h-16 rounded-full bg-black border border-green-900/50 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
@@ -91,14 +91,14 @@ export const ShoppingCartComponent: React.FC<ShoppingCartProps> = ({ items, onRe
           </div>
 
           {items.length > 0 && (
-            <div className="p-6 border-t border-green-900/30 bg-black/60 backdrop-blur-md">
+            <div className="p-4 border-t border-green-900/30 bg-black/60 backdrop-blur-md">
               <div className="flex justify-between items-center mb-6">
                 <span className="text-xs font-bold text-green-700 font-mono uppercase tracking-widest">TOTAL_VALUE</span>
                 <span className="text-2xl font-bold text-green-400 font-mono tracking-wide drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">{`R$ ${total.toFixed(2)}`}</span>
               </div>
               <button
                 onClick={onCheckout}
-                className="w-full bg-green-600 hover:bg-green-500 text-black font-bold font-mono uppercase tracking-[0.2em] py-4 rounded-sm transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] border border-green-400 relative overflow-hidden group active:scale-[0.98]"
+                className="w-full bg-green-600 hover:bg-green-500 text-black font-bold font-mono uppercase tracking-[0.2em] py-3 rounded-sm transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] border border-green-400 relative overflow-hidden group active:scale-[0.98]"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                     INITIATE_CHECKOUT <span className="animate-pulse">_</span>
