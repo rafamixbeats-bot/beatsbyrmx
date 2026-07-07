@@ -51,7 +51,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 const ToastContainer: React.FC<{ toasts: Toast[]; removeToast: (id: number) => void }> = ({ toasts, removeToast }) => {
     return (
-        <div className="fixed bottom-4 right-4 z-[100] w-full max-w-sm space-y-3">
+        <div className="fixed top-28 right-4 z-[100] w-full max-w-sm space-y-3">
             {toasts.map(toast => (
                 <ToastMessage key={toast.id} toast={toast} onDismiss={() => removeToast(toast.id)} />
             ))}

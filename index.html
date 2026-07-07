@@ -92,6 +92,14 @@
       input[type=range].player-progress:hover::-moz-range-thumb {
         background-color: #22c55e;
       }
+      @keyframes waveSlide {
+        0% { transform: translateY(-50%) translateX(0); }
+        100% { transform: translateY(-50%) translateX(-50%); }
+      }
+      @keyframes waveSlideReverse {
+        0% { transform: translateY(-50%) translateX(-50%); }
+        100% { transform: translateY(-50%) translateX(0); }
+      }
     </style>
 
 </head>
