@@ -3,6 +3,7 @@ import Card from './ContactSection';
 import { CartItem, AdminSettings } from '../App';
 import { ShoppingCart, ArrowDownToLine, DollarSign, Download } from './icons';
 import { supabase } from '../supabaseClient';
+import { loadStripe } from '@stripe/stripe-js';
 
 interface CheckoutPageProps {
     items: CartItem[];
@@ -45,7 +46,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                 body: JSON.stringify({ items }),
             });
             const { sessionId } = await res.json();
-            const stripe = await (window as any).loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+            const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
             await stripe.redirectToCheckout({ sessionId });
         } catch (error) {
             alert('Erro ao processar pagamento. Tente novamente.');
