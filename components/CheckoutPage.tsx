@@ -45,11 +45,25 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items }),
             });
-            const { sessionId } = await res.json();
-            const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-            await stripe.redirectToCheckout({ sessionId });
-        } catch (error) {
-            alert('Erro ao processar pagamento. Tente novamente.');
+            const data = await res.json();
+            console.log('Stripe session:', data);
+            
+            if (!data.sessionId) {
+                throw new Error('Session ID não retornado: ' + JSON.stringify(data));
+            }
+            
+            const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+            console.log('Publishable key exists:', !!publishableKey);
+            
+            const stripe = await loadStripe(publishableKey);
+            if (!stripe) {
+                throw new Error('Falha ao carregar Stripe. Verifique a chave publicável.');
+            }
+            
+            await stripe.redirectToCheckout({ sessionId: data.sessionId });
+        } catch (error: any) {
+            console.error('Stripe error:', error);
+            alert('Erro ao processar pagamento: ' + error.message);
             setLoading(false);
         }
     };
