@@ -28,13 +28,6 @@ const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
              <div className="flex items-center gap-8">
                 <a href="#" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">TERMS_OF_SERVICE</a>
                 <a href="#" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">PRIVACY_POLICY</a>
-                <button 
-                    onClick={onAdminClick} 
-                    className="flex items-center gap-2 text-green-900 hover:text-green-500 transition-colors border border-green-900/30 hover:border-green-500/50 px-3 py-1.5 rounded-sm"
-                >
-                    <Settings className="w-3 h-3" />
-                    <span className="font-mono uppercase tracking-widest text-[10px]">ADMIN_LOGIN</span>
-                </button>
              </div>
         </div>
       </div>
