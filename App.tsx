@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import StoreSection from "./components/HomeSection";
 import AudioPlayer from "./components/AboutSection";
 import ShoppingCartComponent from "./components/ProjectsSection";
@@ -16,6 +17,7 @@ import LicenseAgreementModal from './components/LicenseAgreementModal';
 import AboutPage from "./components/AboutPage";
 import PricingPage from "./components/PricingPage";
 import ProducersPage from "./components/ProducersPage";
+import BeatPage from "./components/BeatPage";
 import { supabase } from './supabaseClient';
 
 // Type definitions
@@ -153,6 +155,8 @@ const LicenseSelectionModal: React.FC<{
 
 const App = () => {
   const { addToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [beats, setBeats] = useState<Beat[]>([]);
   const [drumKits, setDrumKits] = useState<DrumKit[]>([]);
@@ -210,13 +214,28 @@ const App = () => {
 
   const handleNavigate = (newView: View) => {
     setView(newView);
+    navigate(newView === 'store' ? '/' : `/${newView}`);
     window.scrollTo(0, 0);
   };
 
+  // Sync view state with URL
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path === '') setView('store');
+    else if (path === '/drum_kits') setView('drum_kits');
+    else if (path === '/checkout') setView('checkout');
+    else if (path === '/admin') setView('admin');
+    else if (path === '/about') setView('about');
+    else if (path === '/pricing') setView('pricing');
+    else if (path === '/producers') setView('producers');
+  }, [location.pathname]);
+
+  // Redirect after login/logout
   const handleLogin = (user: string, pass: string) => {
     if (user === adminSettings.adminUser && pass === adminSettings.adminPass) {
       setIsAuthenticated(true);
       setView('admin');
+      navigate('/admin');
       addToast('Login bem-sucedido!', 'success');
     } else {
       addToast('Usuário ou senha inválidos.', 'error');
@@ -226,6 +245,7 @@ const App = () => {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setView('store');
+    navigate('/');
     addToast('Você saiu.', 'info');
   };
 
@@ -304,12 +324,14 @@ const App = () => {
   const handleCheckout = () => {
     setIsCartOpen(false);
     setView('checkout');
+    navigate('/checkout');
   };
 
   const handleConfirmPurchase = () => {
     addToast('Pedido enviado via WhatsApp!', 'success');
     setCartItems([]);
     setView('store');
+    navigate('/');
   };
 
   // Admin handlers - save to Supabase
@@ -378,7 +400,7 @@ const App = () => {
       case 'drum_kits':
         return <DrumKitsSection drumKits={drumKits} onAddToCart={handleAddToCart} />;
       case 'checkout':
-        return <CheckoutPage items={cartItems} settings={adminSettings} onConfirmPurchase={handleConfirmPurchase} onBackToStore={() => setView('store')} />;
+        return <CheckoutPage items={cartItems} settings={adminSettings} onConfirmPurchase={handleConfirmPurchase} onBackToStore={() => { setView('store'); navigate('/'); }} />;
       case 'admin':
         return <AdminPanel beats={beats} drumKits={drumKits} socialLinks={socialLinks} settings={adminSettings} onAddBeat={handleAddBeat} onUpdateBeat={handleUpdateBeat} onDeleteBeat={handleDeleteBeat} onAddDrumKit={handleAddDrumKit} onDeleteDrumKit={handleDeleteDrumKit} onUpdateSocialLinks={handleUpdateSocials} onUpdateSettings={handleUpdateSettings} onLogout={handleLogout} />;
       case 'about':
@@ -386,7 +408,7 @@ const App = () => {
       case 'pricing':
         return <PricingPage />;
       case 'producers':
-        return <ProducersPage producers={producers} beats={beats} onFilterByProducer={(name) => { setSearchTerm(name); setView('store'); }} />;
+        return <ProducersPage producers={producers} beats={beats} onFilterByProducer={(name) => { setSearchTerm(name); setView('store'); navigate('/'); }} />;
       default:
         return <StoreSection beats={filteredBeats} onPlayBeat={handlePlayBeat} currentBeat={currentBeat} isPlaying={isPlaying} onAddToCartClick={handleAddToCartClick} onDownloadClick={handleDownloadClick} searchTerm={searchTerm} onSearch={setSearchTerm} socialLinks={socialLinks} />;
     }
@@ -396,9 +418,21 @@ const App = () => {
     <div className="bg-black text-slate-300 min-h-screen font-sans flex flex-col">
       <Header onNavigate={handleNavigate} onSearch={setSearchTerm} />
       <main className="pt-24 pb-28 flex-grow">
-        {renderView()}
+        <Routes>
+          <Route path="/beat/:slug" element={
+            <BeatPage
+              beats={beats}
+              currentBeat={currentBeat}
+              isPlaying={isPlaying}
+              onPlayBeat={handlePlayBeat}
+              onAddToCartClick={handleAddToCartClick}
+              onDownloadClick={handleDownloadClick}
+            />
+          } />
+          <Route path="*" element={renderView()} />
+        </Routes>
       </main>
-      <Footer onAdminClick={() => setView('admin')} />
+      <Footer onAdminClick={() => { setView('admin'); navigate('/admin'); }} />
       <ShoppingCartComponent items={cartItems} onRemoveItem={handleRemoveFromCart} onCheckout={handleCheckout} isOpen={isCartOpen} setIsOpen={setIsCartOpen} onNavigate={handleNavigate} />
       <AudioPlayer currentBeat={currentBeat} isPlaying={isPlaying} onPlayPause={handlePlayPause} onNext={playNext} onPrevious={playPrevious} isLooping={isLooping} onToggleLoop={() => setIsLooping(!isLooping)} />
       {licenseModalInfo && <LicenseSelectionModal beat={licenseModalInfo.beat} options={licenseModalInfo.options} onClose={() => setLicenseModalInfo(null)} onAddToCart={handleAddToCart} onViewLicenseTerms={(license) => setLicenseTermsInfo({ beat: licenseModalInfo.beat, license })} />}

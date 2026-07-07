@@ -1,8 +1,10 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Play, Pause, ShoppingCart, SoundWave, ArrowDownToLine, SearchIcon, YoutubeIcon, TiktokIcon, InstagramIcon, SpotifyIcon, TwitterIcon } from './icons';
 import type { Beat, SocialLinks } from '../App';
 import Card from './ContactSection';
+import { slugify } from './BeatPage';
 
 const BeatRow: React.FC<{
     beat: Beat;
@@ -34,9 +36,9 @@ const BeatRow: React.FC<{
 
                 {/* Info Grouped - Left Side */}
                 <div className="flex flex-col min-w-0 mr-4">
-                    <h3 className="font-bold font-mono text-base truncate transition-colors text-green-400 tracking-widest uppercase drop-shadow-[0_0_2px_rgba(74,222,128,0.3)] group-hover:text-green-300">
+                    <Link to={`/beat/${slugify(beat.title)}`} onClick={(e) => e.stopPropagation()} className="font-bold font-mono text-base truncate transition-colors text-green-400 tracking-widest uppercase drop-shadow-[0_0_2px_rgba(74,222,128,0.3)] group-hover:text-green-300 hover:text-green-300 hover:underline">
                         {beat.title}
-                    </h3>
+                    </Link>
                     
                     {/* Metadata with Tech/Lab Font */}
                     <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono tracking-widest uppercase">

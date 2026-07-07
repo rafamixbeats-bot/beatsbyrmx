@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// FIX: The App component is now correctly exported as a default export.
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ToastProvider } from './components/ToastProvider';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -13,10 +13,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
   </React.StrictMode>
 );
