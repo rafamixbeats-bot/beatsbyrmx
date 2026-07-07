@@ -1,5 +1,7 @@
 import S3SDK from '@aws-sdk/client-s3';
-const { S3Client, CreatePresignedPostCommand } = S3SDK;
+import s3Presigner from '@aws-sdk/s3-request-presigner';
+const { S3Client, PutObjectCommand } = S3SDK;
+const { getSignedUrl } = s3Presigner;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +11,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { fileName } = req.query;
+  const { fileName, contentType } = req.query;
   if (!fileName) return res.status(400).json({ error: 'fileName required' });
 
   const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || process.env.VITE_R2_ACCOUNT_ID;
@@ -35,24 +37,21 @@ export default async function handler(req, res) {
       },
     });
 
-    const command = new CreatePresignedPostCommand({
+    const command = new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: uniqueFileName,
-      Expires: 3600,
-      Conditions: [
-        ['content-length-range', 0, 10 * 1024 * 1024 * 1024],
-      ],
+      ContentType: contentType || 'application/octet-stream',
     });
 
-    const presigned = await s3.send(command);
+    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
     return res.status(200).json({
-      uploadUrl: presigned.url,
-      fields: presigned.fields,
-      cdnUrl: `${R2_PUBLIC_URL}/${uniqueFileName}`,
+      uploadUrl: presignedUrl,
+      fileName: uniqueFileName,
+      publicUrl: `${R2_PUBLIC_URL}/${uniqueFileName}`,
     });
   } catch (error) {
     console.error('R2 Error:', error);
-    return res.status(500).json({ error: error.message, stack: error.stack });
+    return res.status(500).json({ error: error.message });
   }
 }
