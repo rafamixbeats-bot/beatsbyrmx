@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DrumKit } from '../App';
-import { ShoppingCart, Package, InfoIcon } from './icons';
+import { ShoppingCart, Package, InfoIcon, Music } from './icons';
 
 interface DrumKitsSectionProps {
     drumKits: DrumKit[];
@@ -9,6 +10,8 @@ interface DrumKitsSectionProps {
 }
 
 const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart }) => {
+    const navigate = useNavigate();
+
     return (
         <div className="min-h-screen bg-black text-green-500 font-mono">
              {/* Header Section Lab Style */}
@@ -30,9 +33,7 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {drumKits.length > 0 ? (
                         drumKits.map((kit, index) => {
-                             // Generate Atomic Symbol (First 2 chars)
                              const symbol = kit.title.substring(0, 2).toUpperCase();
-                             // Use ID suffix for 'Atomic Number' look
                              const atomicNumber = (index + 1).toString().padStart(2, '0');
                              
                              return (
@@ -41,12 +42,13 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                     {/* Top Info Bar */}
                                     <div className="flex justify-between items-center p-2 border-b border-green-900/30 bg-green-900/5 select-none">
                                         <span className="text-[10px] text-green-700 font-bold">{atomicNumber}</span>
-                                        <span className="text-[10px] text-green-700 font-bold tracking-wider">SOLID STATE</span>
+                                        <span className="text-[10px] text-green-700 font-bold tracking-wider">
+                                            {kit.samples.length > 0 ? `${kit.samples.length} FILES` : 'SOLID STATE'}
+                                        </span>
                                     </div>
 
-                                    {/* Image / Specimen Area */}
-                                    <div className="relative aspect-square overflow-hidden bg-black/50 border-b border-green-900/30 group-hover:border-green-500/50 transition-colors">
-                                        {/* Main Image - Grayscale to Color */}
+                                    {/* Image / Specimen Area - clickable to detail */}
+                                    <div className="relative aspect-square overflow-hidden bg-black/50 border-b border-green-900/30 group-hover:border-green-500/50 transition-colors cursor-pointer" onClick={() => navigate(`/pack/${kit.slug}`)}>
                                         <img 
                                             src={kit.artworkUrl} 
                                             alt={kit.title} 
@@ -75,10 +77,18 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
 
                                     {/* Info Body */}
                                     <div className="p-4 flex flex-col flex-grow bg-black/80 backdrop-blur-sm">
-                                        <h3 className="text-xl font-bold text-green-400 mb-1 truncate tracking-wider group-hover:text-green-300 transition-colors">{kit.title}</h3>
+                                        <h3 className="text-xl font-bold text-green-400 mb-1 truncate tracking-wider group-hover:text-green-300 transition-colors cursor-pointer" onClick={() => navigate(`/pack/${kit.slug}`)}>{kit.title}</h3>
                                         <p className="text-[10px] text-green-800 uppercase tracking-widest mb-4 line-clamp-2 min-h-[2.5em] group-hover:text-green-700 transition-colors">
                                             {kit.description || "NO DATA AVAILABLE."}
                                         </p>
+                                        
+                                        {kit.tags && kit.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mb-3">
+                                                {kit.tags.slice(0, 3).map(tag => (
+                                                    <span key={tag} className="text-[8px] text-green-700 bg-green-900/20 border border-green-900/30 px-1.5 py-0.5 rounded-sm uppercase">{tag}</span>
+                                                ))}
+                                            </div>
+                                        )}
                                         
                                         <div className="mt-auto pt-4 border-t border-green-900/30 flex items-center justify-between group-hover:border-green-500/30 transition-colors">
                                              <div className="flex flex-col">
@@ -86,13 +96,22 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                                 <span className="text-lg font-bold text-green-400 group-hover:text-green-300 transition-colors">R$ {kit.price.toFixed(2)}</span>
                                              </div>
                                              
-                                             <button 
-                                                onClick={() => onAddToCart(kit)}
-                                                className="bg-green-900/20 hover:bg-green-500 text-green-400 hover:text-black border border-green-700 hover:border-green-400 p-2.5 rounded-sm transition-all shadow-[0_0_10px_rgba(0,0,0,0)] hover:shadow-[0_0_15px_rgba(74,222,128,0.4)] active:scale-95"
-                                                title="Adicionar Elemento ao Carrinho"
-                                             >
-                                                <ShoppingCart className="w-5 h-5" />
-                                             </button>
+                                             <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); navigate(`/pack/${kit.slug}`); }}
+                                                    className="bg-green-900/20 hover:bg-green-500 text-green-400 hover:text-black border border-green-700 hover:border-green-400 p-2.5 rounded-sm transition-all shadow-[0_0_10px_rgba(0,0,0,0)] hover:shadow-[0_0_15px_rgba(74,222,128,0.4)] active:scale-95"
+                                                    title="Ver Detalhes"
+                                                >
+                                                    <Music className="w-5 h-5" />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); onAddToCart(kit); }}
+                                                    className="bg-green-900/20 hover:bg-green-500 text-green-400 hover:text-black border border-green-700 hover:border-green-400 p-2.5 rounded-sm transition-all shadow-[0_0_10px_rgba(0,0,0,0)] hover:shadow-[0_0_15px_rgba(74,222,128,0.4)] active:scale-95"
+                                                    title="Adicionar ao Carrinho"
+                                                >
+                                                    <ShoppingCart className="w-5 h-5" />
+                                                </button>
+                                             </div>
                                         </div>
                                     </div>
                                 </div>

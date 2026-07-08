@@ -168,8 +168,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [kitTitle, setKitTitle] = useState('');
     const [kitDescription, setKitDescription] = useState('');
     const [kitPrice, setKitPrice] = useState<number | ''>(79.90);
-    const [kitZipFile, setKitZipFile] = useState<File | null>(null);
-    const [kitArtworkFile, setKitArtworkFile] = useState<File | null>(null); // State for kit artwork
+    const [kitTags, setKitTags] = useState('');
+    const [kitSampleFiles, setKitSampleFiles] = useState<File[]>([]);
+    const [kitArtworkFile, setKitArtworkFile] = useState<File | null>(null);
     
     const [kitSubmissionStatus, setKitSubmissionStatus] = useState<SubmissionStatus>('idle');
     const [kitSubmissionMessage, setKitSubmissionMessage] = useState('');
@@ -338,36 +339,60 @@ useEffect(() => {
         e.preventDefault();
         setKitSubmissionStatus('idle');
 
-        if (!kitTitle || kitPrice === '' || !kitZipFile) {
-            addToast("Preencha campos e arquivo .ZIP.", 'error');
+        if (!kitTitle || kitPrice === '' || kitSampleFiles.length === 0) {
+            addToast("Preencha titulo, preco e envie pelo menos 1 sample.", 'error');
             return;
         }
 
         try {
-            const [zipUrl, artworkUrl] = await Promise.all([
-                 uploadFile(kitZipFile, setKitSubmissionStatus, setKitSubmissionMessage),
-                 kitArtworkFile ? uploadFile(kitArtworkFile, setKitSubmissionStatus, setKitSubmissionMessage) : null
-            ]);
+            setKitSubmissionStatus('uploading');
+            setKitSubmissionMessage('Enviando samples...');
 
-            if (!zipUrl) throw new Error("Falha no upload do kit.");
+            const sampleUrls = await Promise.all(
+                kitSampleFiles.map(async (file) => {
+                    const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type || 'audio/wav')}`);
+                    if (!res.ok) throw new Error('Falha ao obter URL de upload');
+                    const { uploadUrl, publicUrl } = await res.json();
+                    const uploadRes = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'audio/wav' } });
+                    if (!uploadRes.ok) throw new Error(`Upload falhou: ${file.name}`);
+                    return { file_name: file.name, file_url: publicUrl };
+                })
+            );
+
+            const artworkUrl = kitArtworkFile ? await uploadFile(kitArtworkFile, setKitSubmissionStatus, setKitSubmissionMessage) : null;
             
             setKitSubmissionStatus('saving');
-            setKitSubmissionMessage('Adicionando kit...');
+            setKitSubmissionMessage('Registrando kit...');
             
-            const finalKitArtwork = artworkUrl || `https://placehold.co/400x400/1d4ed8/ffffff?text=${encodeURIComponent(kitTitle)}`;
+            const finalArtwork = artworkUrl || `https://placehold.co/400x400/1d4ed8/ffffff?text=${encodeURIComponent(kitTitle)}`;
+            const slug = kitTitle.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+            const samples: DrumKitSample[] = sampleUrls.map((s, i) => ({
+                id: crypto.randomUUID(),
+                pack_id: '',
+                file_name: s.file_name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+                file_url: s.file_url,
+                duration: '',
+                key: '',
+                bpm: 0,
+                sort_order: i
+            }));
 
             const newKitData: DrumKit = {
                 id: crypto.randomUUID(),
                 created_at: new Date().toISOString(),
                 title: kitTitle.toUpperCase(),
+                slug,
                 description: kitDescription,
                 price: Number(kitPrice),
-                download_url: zipUrl,
-                artworkUrl: finalKitArtwork
+                download_url: sampleUrls[0]?.file_url || '',
+                artworkUrl: finalArtwork,
+                tags: kitTags.split(',').map(t => t.trim()).filter(Boolean),
+                samples
             };
             onAddDrumKit(newKitData);
-            setKitTitle(''); setKitDescription(''); setKitPrice(79.90);
-            setKitZipFile(null); setKitArtworkFile(null);
+            setKitTitle(''); setKitDescription(''); setKitPrice(79.90); setKitTags('');
+            setKitSampleFiles([]); setKitArtworkFile(null);
             setActiveTab('dashboard');
         } catch (error: any) {
             console.error("Error adding drum kit:", error);
@@ -652,7 +677,10 @@ const handleDeleteCoupon = async (id: string) => {
                                                      </div>
                                                     <div>
                                                         <p className="font-bold text-green-400 font-mono text-sm uppercase">{kit.title}</p>
-                                                        <p className="text-xs font-bold text-green-600 font-mono">R$ {kit.price.toFixed(2)}</p>
+                                                        <p className="text-[10px] text-green-700 font-mono">
+                                                            R$ {kit.price.toFixed(2)} · {kit.samples?.length || 0} samples
+                                                            {kit.tags?.length > 0 && ` · ${kit.tags.join(', ')}`}
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <button onClick={() => handleDeleteDrumKitClick(kit)} title="EXCLUIR" className="text-green-700 hover:text-red-500 p-2 border border-transparent hover:border-red-500/30 rounded-sm transition-all">
@@ -669,34 +697,46 @@ const handleDeleteCoupon = async (id: string) => {
                                 <h3 className="text-lg font-bold text-green-400 mb-6 flex items-center gap-2 font-mono uppercase tracking-widest border-b border-green-900/30 pb-2">
                                     <Package className="w-4 h-4" /> [INPUT.NEW_KIT]
                                 </h3>
-                                <form onSubmit={handleAddKitSubmit} className="space-y-6">
-                                     <InputField label="Título do Kit" type="text" value={kitTitle} onChange={(e) => setKitTitle(e.target.value)} placeholder="EX: TRAP ESSENTIALS" required />
-                                     <InputField label="Descrição" as="textarea" rows={3} value={kitDescription} onChange={(e) => setKitDescription(e.target.value)} placeholder="CONTEÚDO DO KIT..." />
-                                     <div className="grid md:grid-cols-2 gap-6">
+                                 <form onSubmit={handleAddKitSubmit} className="space-y-6">
+                                      <InputField label="Título do Kit" type="text" value={kitTitle} onChange={(e) => setKitTitle(e.target.value)} placeholder="EX: TRAP ESSENTIALS" required />
+                                      <InputField label="Descrição" as="textarea" rows={3} value={kitDescription} onChange={(e) => setKitDescription(e.target.value)} placeholder="CONTEÚDO DO KIT..." />
+                                      <div className="grid md:grid-cols-3 gap-6">
                                         <InputField label="Preço (R$)" type="number" step="0.01" value={kitPrice} onChange={(e) => setKitPrice(e.target.value === '' ? '' : parseFloat(e.target.value))} placeholder="79.90" required />
-                                     </div>
-                                     
-                                     <div className="grid md:grid-cols-2 gap-6">
-                                          <FileInputField 
-                                            label="Arquivo .ZIP" 
-                                            id="kit-zip-upload" 
-                                            file={kitZipFile} 
-                                            onChange={setKitZipFile} 
-                                            accept="application/zip,application/x-zip-compressed,.zip"
-                                            variant="accent"
-                                            icon={<Package className="w-8 h-8 text-purple-500" />} 
-                                        />
-                                         <FileInputField 
-                                            label="Capa (400x400)" 
-                                            id="kit-artwork-upload" 
-                                            file={kitArtworkFile} 
-                                            onChange={setKitArtworkFile} 
-                                            accept="image/*"
-                                            variant="default"
-                                            isOptional={true}
-                                            icon={<UploadCloud className="w-8 h-8 text-green-500" />} 
-                                        />
-                                     </div>
+                                        <InputField label="Tags (vírgula)" type="text" value={kitTags} onChange={(e) => setKitTags(e.target.value)} placeholder="drill, trap, melody" />
+                                      </div>
+                                      
+                                      <div className="grid md:grid-cols-2 gap-6">
+                                           <div>
+                                               <label className="block text-xs font-bold text-green-600 mb-1 font-mono uppercase tracking-widest">
+                                                   Samples (WAV/MP3) — {kitSampleFiles.length} selecionados
+                                               </label>
+                                               <label className="cursor-pointer border border-dashed border-purple-900/30 hover:border-purple-500/50 rounded-sm p-4 flex flex-col items-center justify-center text-center transition-all h-36 bg-black/40 hover:bg-purple-900/5">
+                                                   <UploadCloud className="w-8 h-8 text-purple-500 opacity-70 mb-2" />
+                                                   <span className="text-[10px] text-purple-700 font-mono uppercase">Selecionar Arquivos</span>
+                                                   <input type="file" className="hidden" multiple accept="audio/*,.wav,.mp3,.aif,.aiff" onChange={(e) => { if (e.target.files) setKitSampleFiles(Array.from(e.target.files)); }} />
+                                               </label>
+                                               {kitSampleFiles.length > 0 && (
+                                                   <div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+                                                       {kitSampleFiles.map((f, i) => (
+                                                           <div key={i} className="flex items-center justify-between text-[10px] text-green-700 font-mono bg-green-900/10 px-2 py-1 rounded-sm">
+                                                               <span className="truncate">{f.name}</span>
+                                                               <span>{(f.size / 1024 / 1024).toFixed(1)} MB</span>
+                                                           </div>
+                                                       ))}
+                                                   </div>
+                                               )}
+                                           </div>
+                                           <FileInputField 
+                                             label="Capa (400x400)" 
+                                             id="kit-artwork-upload" 
+                                             file={kitArtworkFile} 
+                                             onChange={setKitArtworkFile} 
+                                             accept="image/*"
+                                             variant="default"
+                                             isOptional={true}
+                                             icon={<UploadCloud className="w-8 h-8 text-green-500" />} 
+                                         />
+                                      </div>
 
                                     <div className="flex justify-end pt-2">
                                         <button type="submit" disabled={kitSubmissionStatus !== 'idle'} className="bg-green-900/50 hover:bg-green-500/20 text-green-400 border border-green-500/50 font-bold font-mono uppercase tracking-widest py-3 px-6 rounded-sm transition-all disabled:opacity-50 min-w-[180px]">

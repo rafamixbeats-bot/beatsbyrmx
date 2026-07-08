@@ -18,6 +18,7 @@ import AboutPage from "./components/AboutPage";
 import PricingPage from "./components/PricingPage";
 import ProducersPage from "./components/ProducersPage";
 import BeatPage from "./components/BeatPage";
+import PackDetailPage from "./components/PackDetailPage";
 import TermsPage from "./components/TermsPage";
 import PrivacyPage from "./components/PrivacyPage";
 import { supabase } from './supabaseClient';
@@ -44,14 +45,28 @@ export interface Beat {
   tags: string[];
 }
 
+export interface DrumKitSample {
+  id: string;
+  pack_id: string;
+  file_name: string;
+  file_url: string;
+  duration: string;
+  key: string;
+  bpm: number;
+  sort_order: number;
+}
+
 export interface DrumKit {
   id: string;
   created_at?: string;
   title: string;
+  slug: string;
   description: string;
   price: number;
   download_url: string;
   artworkUrl: string;
+  tags: string[];
+  samples: DrumKitSample[];
 }
 
 export interface CartItem {
@@ -86,7 +101,7 @@ export interface AdminSettings {
   adminPass: string;
 }
 
-export type View = 'store' | 'drum_kits' | 'checkout' | 'admin' | 'about' | 'pricing' | 'producers';
+export type View = 'store' | 'drum_kits' | 'checkout' | 'admin' | 'about' | 'pricing' | 'producers' | 'pack';
 
 export type LicenseType = 'mp3' | 'wav' | 'stems';
 export interface LicenseOption {
@@ -186,6 +201,7 @@ const App = () => {
 
   const [beats, setBeats] = useState<Beat[]>([]);
   const [drumKits, setDrumKits] = useState<DrumKit[]>([]);
+  const [drumKitSamples, setDrumKitSamples] = useState<DrumKitSample[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(mockSocialLinks);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
@@ -195,15 +211,24 @@ const App = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [beatsRes, kitsRes, socialsRes, settingsRes] = await Promise.all([
+        const [beatsRes, kitsRes, samplesRes, socialsRes, settingsRes] = await Promise.all([
           supabase.from('beats').select('*').order('created_at', { ascending: false }),
           supabase.from('drum_kits').select('*').order('created_at', { ascending: false }),
+          supabase.from('drum_kit_samples').select('*').order('sort_order', { ascending: true }),
           supabase.from('settings').select('*').eq('key', 'social_links').single(),
           supabase.from('settings').select('*').eq('key', 'admin_settings').single(),
         ]);
 
         if (beatsRes.data) setBeats(beatsRes.data);
-        if (kitsRes.data) setDrumKits(kitsRes.data);
+        if (kitsRes.data) {
+          const kits = kitsRes.data.map(k => ({
+            ...k,
+            tags: k.tags || [],
+            samples: samplesRes.data ? samplesRes.data.filter((s: any) => s.pack_id === k.id) : []
+          }));
+          setDrumKits(kits);
+        }
+        if (samplesRes.data) setDrumKitSamples(samplesRes.data);
         if (socialsRes.data?.value) setSocialLinks(socialsRes.data.value);
         if (settingsRes.data?.value) setAdminSettings(settingsRes.data.value);
       } catch (err) {
@@ -254,6 +279,7 @@ const App = () => {
     else if (path === '/about') setView('about');
     else if (path === '/pricing') setView('pricing');
     else if (path === '/producers') setView('producers');
+    else if (path.startsWith('/pack/')) setView('pack');
   }, [location.pathname]);
 
   // Redirect after login/logout
@@ -387,21 +413,28 @@ const App = () => {
   };
 
   const handleAddDrumKit = async (newKit: DrumKit) => {
-    const { data, error } = await supabase.from('drum_kits').insert([newKit]).select().single();
+    const { samples, ...kitData } = newKit;
+    const { data, error } = await supabase.from('drum_kits').insert([kitData]).select().single();
     if (error) { addToast('Erro ao salvar kit!', 'error'); return; }
-    setDrumKits(prev => [data, ...prev]);
-    addToast('Drum kit adicionado!', 'success');
+    if (samples && samples.length > 0) {
+      const samplesWithPackId = samples.map(s => ({ ...s, pack_id: data.id }));
+      const { error: samplesError } = await supabase.from('drum_kit_samples').insert(samplesWithPackId);
+      if (samplesError) console.error('Erro ao salvar samples:', samplesError);
+    }
+    setDrumKits(prev => [{ ...data, tags: data.tags || [], samples: samples || [] }, ...prev]);
+    addToast('Sound Kit adicionado!', 'success');
   };
 
   const handleDeleteDrumKit = async (kit: DrumKit) => {
-    const filesToDelete = [kit.download_url, kit.artworkUrl].filter(Boolean);
+    const filesToDelete = [kit.download_url, kit.artworkUrl, ...kit.samples.map(s => s.file_url)].filter(Boolean);
     if (filesToDelete.length > 0) {
       try { await fetch('/api/delete-r2-files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileUrls: filesToDelete }) }); } catch (e) {}
     }
+    await supabase.from('drum_kit_samples').delete().eq('pack_id', kit.id);
     const { error } = await supabase.from('drum_kits').delete().eq('id', kit.id);
     if (error) { addToast('Erro ao excluir kit!', 'error'); return; }
     setDrumKits(prev => prev.filter(k => k.id !== kit.id));
-    addToast('Drum kit excluído!', 'success');
+    addToast('Sound Kit excluído!', 'success');
   };
 
   const handleUpdateSocials = async (newLinks: SocialLinks) => {
@@ -461,6 +494,12 @@ const App = () => {
               onPlayBeat={handlePlayBeat}
               onAddToCartClick={handleAddToCartClick}
               onDownloadClick={handleDownloadClick}
+            />
+          } />
+          <Route path="/pack/:slug" element={
+            <PackDetailPage
+              drumKits={drumKits}
+              onAddToCart={handleAddToCart}
             />
           } />
           <Route path="/terms" element={<TermsPage />} />
