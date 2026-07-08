@@ -527,7 +527,7 @@ const handleDeleteCoupon = async (id: string) => {
                                                         <p className="font-bold text-green-400 font-mono text-sm tracking-wide uppercase">{beat.title}</p>
                                                         <div className="flex items-center gap-2 text-[10px] font-mono uppercase mt-1">
                                                             <span className="text-green-600 bg-green-900/20 px-1 rounded border border-green-900/30">
-                                                                {(beat.price_mp3 > 0) ? `R$ ${beat.price_mp3.toFixed(2)}` : 'FREE'}
+                                                                {(beat.price_mp3 > 0) ? `R$ ${beat.price_mp3.toFixed(2)}` : (beat.price_wav > 0) ? `R$ ${beat.price_wav.toFixed(2)}` : 'FREE'}
                                                             </span>
                                                             <span className="text-green-800">|</span>
                                                             <span className="text-green-600">{beat.bpm} BPM</span>

@@ -69,7 +69,7 @@ const BeatRow: React.FC<{
 
                 <div className="w-24 text-right hidden sm:block">
                     <span className="font-bold font-mono text-green-400 text-sm block tracking-widest drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">
-                        {beat.price_mp3 > 0 ? `R$ ${beat.price_mp3.toFixed(2)}` : 'FREE'}
+                        {beat.price_mp3 > 0 ? `R$ ${beat.price_mp3.toFixed(2)}` : beat.price_wav > 0 ? `R$ ${beat.price_wav.toFixed(2)}` : 'FREE'}
                     </span>
                 </div>
 
@@ -208,7 +208,7 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                                             <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase mb-1 group-hover:text-purple-300">ACQUIRE_LICENSE</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-green-400 font-bold font-mono text-xl tracking-wider drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
-                                                    {featuredBeat.price_mp3 > 0 ? `R$ ${featuredBeat.price_mp3.toFixed(2)}` : 'FREE'}
+                                                    {featuredBeat.price_mp3 > 0 ? `R$ ${featuredBeat.price_mp3.toFixed(2)}` : featuredBeat.price_wav > 0 ? `R$ ${featuredBeat.price_wav.toFixed(2)}` : 'FREE'}
                                                 </span>
                                             </div>
                                         </div>
