@@ -60,7 +60,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
     const audio = audioRef.current;
     if (!audio) return;
     const setAudioData = () => setDuration(audio.duration);
-    const setAudioTime = () => setCurrentTime(audio.currentTime);
+    const setAudioTime = () => {
+      setCurrentTime(audio.currentTime);
+      if (progressRef.current && audio.duration) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        progressRef.current.style.setProperty('--progress', `${pct}%`);
+      }
+    };
     audio.addEventListener('loadeddata', setAudioData);
     audio.addEventListener('timeupdate', setAudioTime);
     return () => {
