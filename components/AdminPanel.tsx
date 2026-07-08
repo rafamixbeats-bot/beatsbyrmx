@@ -281,8 +281,8 @@ useEffect(() => {
             addToast("Preencha os campos obrigatórios.", 'error');
             return;
         }
-        if (!mp3File) {
-            addToast("Arquivo MP3 obrigatório.", 'error');
+        if (!mp3File && !wavFile) {
+            addToast("Envie pelo menos um arquivo de áudio (MP3 ou WAV).", 'error');
             return;
         }
 
@@ -292,8 +292,9 @@ useEffect(() => {
                 uploadFile(wavFile, setSubmissionStatus, setSubmissionMessage),
                 uploadFile(zipFile, setSubmissionStatus, setSubmissionMessage),
             ]);
-            
-            if (!mp3Url) throw new Error("Upload MP3 falhou.");
+
+            const previewUrl = mp3Url || wavUrl;
+            if (!previewUrl) throw new Error("Upload de áudio falhou.");
 
             setSubmissionStatus('saving');
             setSubmissionMessage('Registrando beat...');
@@ -311,12 +312,12 @@ useEffect(() => {
                 duration,
                 tags: tags.split(',').map(t => t.trim()).filter(Boolean),
                 artworkUrl: generatedArtworkUrl,
-                price_mp3: priceMp3Num,
+                price_mp3: mp3Url ? priceMp3Num : 0,
                 price_wav: wavUrl ? priceWavNum : 0,
                 price_stems: stemsUrl ? priceStemsNum : 0,
                 description,
-                audioPreviewUrl: mp3Url,
-                downloadUrl: mp3Url,
+                audioPreviewUrl: previewUrl,
+                downloadUrl: previewUrl,
                 wavUrl: wavUrl,
                 stemsUrl: stemsUrl,
             };
@@ -592,7 +593,7 @@ const handleDeleteCoupon = async (id: string) => {
                                         file={mp3File}
                                         onChange={setMp3File}
                                         accept="audio/mpeg,.mp3"
-                                        helperText="REQUIRED"
+                                        helperText="MP3 OU WAV OBRIGATÓRIO"
                                         variant="success"
                                         icon={<Music className="w-8 h-8 text-green-500" />}
                                     />
@@ -601,9 +602,8 @@ const handleDeleteCoupon = async (id: string) => {
                                         id="wav-upload"
                                         file={wavFile}
                                         onChange={setWavFile}
-                                        isOptional={true}
                                         accept="audio/wav,audio/x-wav,.wav"
-                                        helperText="PREMIUM LICENSE"
+                                        helperText="MP3 OU WAV OBRIGATÓRIO"
                                         variant="primary"
                                         icon={<SoundWave className="w-8 h-8 text-blue-500" />}
                                     />
