@@ -21,7 +21,7 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPlayPause, onNext, onPrevious, isLooping, onToggleLoop }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const progressRef = useRef<HTMLInputElement>(null);
+  const seekRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.75);
@@ -30,73 +30,67 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (isPlaying && currentBeat) {
       if (audio.src !== currentBeat.audioPreviewUrl) {
         audio.src = currentBeat.audioPreviewUrl;
+        setCurrentTime(0);
+        setDuration(0);
       }
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          if (error.name !== 'AbortError') {
-            console.error("Audio play failed:", error);
-          }
-        });
-      }
+      audio.play().catch(error => {
+        if (error.name !== 'AbortError') {
+          console.error("Audio play failed:", error);
+        }
+      });
     } else {
       audio.pause();
     }
   }, [isPlaying, currentBeat]);
-  
+
   useEffect(() => {
-    if(audioRef.current) audioRef.current.loop = isLooping;
+    if (audioRef.current) audioRef.current.loop = isLooping;
   }, [isLooping]);
-  
+
   useEffect(() => {
-    if(audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
+    if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
-  useEffect(() => {
+  const handleLoadedMetadata = () => {
+    const audio = audioRef.current;
+    if (audio && audio.duration && isFinite(audio.duration)) {
+      setDuration(audio.duration);
+    }
+  };
+
+  const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    const setAudioData = () => {
-      if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
-    };
-    const setAudioTime = () => {
-      if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
-      setCurrentTime(audio.currentTime);
-    };
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('loadedmetadata', setAudioData);
-    audio.addEventListener('durationchange', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-    return () => {
-        audio.removeEventListener('loadeddata', setAudioData);
-        audio.removeEventListener('loadedmetadata', setAudioData);
-        audio.removeEventListener('durationchange', setAudioData);
-        audio.removeEventListener('timeupdate', setAudioTime);
-    }
-  }, []);
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (audioRef.current) audioRef.current.currentTime = Number(e.target.value);
+    if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
+    setCurrentTime(audio.currentTime);
   };
-  
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bar = seekRef.current;
+    const audio = audioRef.current;
+    if (!bar || !audio || !duration) return;
+    const rect = bar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, x / rect.width));
+    audio.currentTime = pct * duration;
+  };
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newVolume = parseFloat(e.target.value);
-      setVolume(newVolume);
-      if (newVolume > 0 && isMuted) setIsMuted(false);
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (newVolume > 0 && isMuted) setIsMuted(false);
   };
-  
-  const toggleMute = () => setIsMuted(!isMuted);
-  
-  const VolumeIcon = () => {
-      if(isMuted || volume === 0) return <VolumeX className="w-5 h-5" />;
-      if(volume < 0.5) return <Volume1 className="w-5 h-5" />;
-      return <Volume2 className="w-5 h-5" />;
-  }
 
-  if (!currentBeat) return null;
+  const toggleMute = () => setIsMuted(!isMuted);
+
+  const VolumeIcon = () => {
+    if (isMuted || volume === 0) return <VolumeX className="w-5 h-5" />;
+    if (volume < 0.5) return <Volume1 className="w-5 h-5" />;
+    return <Volume2 className="w-5 h-5" />;
+  };
 
   const formatTime = (time: number) => {
     if (isNaN(time) || !isFinite(time)) return '0:00';
@@ -105,14 +99,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  if (!currentBeat) return null;
+
+  const progressPct = duration ? (currentTime / duration) * 100 : 0;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      <audio ref={audioRef} onEnded={onNext} />
-      
-      {/* Background: Dark Purple (matching the requested aesthetic) */}
+      <audio
+        ref={audioRef}
+        onEnded={onNext}
+        onLoadedMetadata={handleLoadedMetadata}
+        onDurationChange={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+      />
+
       <div className="bg-[#0b0118]/95 backdrop-blur-xl border-t border-green-500/20 grid grid-cols-3 w-full p-3 px-6 items-center shadow-[0_-5px_20px_rgba(88,28,135,0.3)]">
-          
-          {/* Left: Beat Info - Mono Font & Neon Green */}
+
+          {/* Left: Beat Info */}
           <div className="flex flex-col justify-center overflow-hidden">
              <div className="flex items-center gap-2">
                  <div className="w-1 h-8 bg-green-500/50 rounded-sm animate-pulse hidden md:block"></div>
@@ -131,29 +134,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
           <div className="flex flex-col items-center justify-center px-4">
               <div className="flex items-center gap-8 text-green-700 mb-2">
                 <button onClick={onPrevious} className="hover:text-green-400 transition-colors"><SkipBack className="w-5 h-5" /></button>
-                
-                {/* Play Button: Neon Green with Black Icon */}
                 <button onClick={onPlayPause} className="w-12 h-12 flex items-center justify-center text-black bg-green-500 hover:bg-green-400 rounded-full transition-all duration-200 shadow-[0_0_15px_rgba(74,222,128,0.4)] hover:scale-105 active:scale-95">
                     {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
                 </button>
-                
                 <button onClick={onNext} className="hover:text-green-400 transition-colors"><SkipForward className="w-5 h-5" /></button>
               </div>
-              
+
               <div className="flex items-center justify-center gap-3 w-full max-w-xl">
                 <span className="text-[10px] text-green-600 w-10 text-right font-mono tracking-wider">{formatTime(currentTime)}</span>
-                <div className="relative w-full h-4 flex items-center">
-                  <div className="absolute h-1 rounded-full bg-green-900/30 left-0 right-0 top-1/2 -translate-y-1/2"></div>
-                  <div className="absolute h-1 rounded-full bg-green-400 left-0 top-1/2 -translate-y-1/2" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}></div>
-                  <input
-                      type="range"
-                      ref={progressRef}
-                      min="0"
-                      max={duration || 0}
-                      value={currentTime}
-                      onChange={handleSeek}
-                      className="player-progress relative z-10 w-full h-1 appearance-none cursor-pointer rounded-full"
-                  />
+                <div
+                  ref={seekRef}
+                  onClick={handleSeek}
+                  className="relative w-full h-4 flex items-center cursor-pointer group"
+                >
+                  {/* Background track */}
+                  <div className="absolute h-1 rounded-full bg-green-900/30 left-0 right-0 top-1/2 -translate-y-1/2 group-hover:h-1.5 transition-all"></div>
+                  {/* Progress fill */}
+                  <div className="absolute h-1 rounded-full bg-green-400 left-0 top-1/2 -translate-y-1/2 group-hover:h-1.5 transition-all" style={{ width: `${progressPct}%` }}></div>
+                  {/* Thumb */}
+                  <div className="absolute w-3 h-3 rounded-full bg-green-400 top-1/2 -translate-y-1/2 -translate-x-1/2 shadow-[0_0_5px_rgba(74,222,128,0.5)] opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: `${progressPct}%` }}></div>
                 </div>
                 <span className="text-[10px] text-green-600 w-10 text-left font-mono tracking-wider">{formatTime(duration)}</span>
               </div>
@@ -161,8 +160,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
 
           {/* Right: Loop & Volume */}
           <div className="flex items-center justify-end gap-6">
-             <button 
-                onClick={onToggleLoop} 
+             <button
+                onClick={onToggleLoop}
                 className={`transition-colors ${isLooping ? 'text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.6)]' : 'text-green-800 hover:text-green-500'}`}
                 title={isLooping ? "Desativar Repetição" : "Ativar Repetição"}
              >
