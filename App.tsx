@@ -437,6 +437,13 @@ const App = () => {
     addToast('Sound Kit excluído!', 'success');
   };
 
+  const handleUpdateDrumKit = async (kitId: string, data: Partial<DrumKit>) => {
+    const { error } = await supabase.from('drum_kits').update(data).eq('id', kitId);
+    if (error) { addToast('Erro ao atualizar kit!', 'error'); return; }
+    setDrumKits(prev => prev.map(k => k.id === kitId ? { ...k, ...data } : k));
+    addToast('Sound Kit atualizado!', 'success');
+  };
+
   const handleUpdateSocials = async (newLinks: SocialLinks) => {
     await supabase.from('settings').upsert({ key: 'social_links', value: newLinks });
     setSocialLinks(newLinks);
@@ -469,7 +476,7 @@ const App = () => {
       case 'checkout':
         return <CheckoutPage items={cartItems} settings={adminSettings} onConfirmPurchase={handleConfirmPurchase} onBackToStore={() => { setView('store'); navigate('/'); }} />;
       case 'admin':
-        return <AdminPanel beats={beats} drumKits={drumKits} socialLinks={socialLinks} settings={adminSettings} onAddBeat={handleAddBeat} onUpdateBeat={handleUpdateBeat} onDeleteBeat={handleDeleteBeat} onAddDrumKit={handleAddDrumKit} onDeleteDrumKit={handleDeleteDrumKit} onUpdateSocialLinks={handleUpdateSocials} onUpdateSettings={handleUpdateSettings} onLogout={handleLogout} />;
+        return <AdminPanel beats={beats} drumKits={drumKits} socialLinks={socialLinks} settings={adminSettings} onAddBeat={handleAddBeat} onUpdateBeat={handleUpdateBeat} onDeleteBeat={handleDeleteBeat} onAddDrumKit={handleAddDrumKit} onUpdateDrumKit={handleUpdateDrumKit} onDeleteDrumKit={handleDeleteDrumKit} onUpdateSocialLinks={handleUpdateSocials} onUpdateSettings={handleUpdateSettings} onLogout={handleLogout} />;
       case 'about':
         return <AboutPage />;
       case 'pricing':

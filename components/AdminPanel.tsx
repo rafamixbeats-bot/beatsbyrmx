@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from './ContactSection';
 import { UploadCloud, LogOut, BarChart2, Settings, Trash2, Music, Package, DollarSign, InfoIcon, LayersIcon, SoundWave, User, EditIcon, X, AlertTriangleIcon, CheckCircleIcon } from './icons';
-import type { Beat, SocialLinks, DrumKit, AdminSettings } from '../App';
+import type { Beat, SocialLinks, DrumKit, DrumKitSample, AdminSettings } from '../App';
 import { useToast } from './ToastProvider';
 import { supabase } from '../supabaseClient';
 
@@ -16,6 +16,7 @@ interface AdminPanelProps {
     onUpdateBeat: (beatId: string, data: Partial<Beat>) => void;
     onDeleteBeat: (beat: Beat) => void;
     onAddDrumKit: (newKit: DrumKit) => void;
+    onUpdateDrumKit: (kitId: string, data: Partial<DrumKit>) => Promise<void>;
     onDeleteDrumKit: (kit: DrumKit) => void;
     onUpdateSocialLinks: (newLinks: SocialLinks) => void;
     onUpdateSettings: (newSettings: AdminSettings) => void;
@@ -139,7 +140,7 @@ const FileInputField: React.FC<{
 };
 
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, settings, onAddBeat, onDeleteBeat, onUpdateBeat, onAddDrumKit, onDeleteDrumKit, onUpdateSocialLinks, onUpdateSettings, onLogout }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, settings, onAddBeat, onDeleteBeat, onUpdateBeat, onAddDrumKit, onUpdateDrumKit, onDeleteDrumKit, onUpdateSocialLinks, onUpdateSettings, onLogout }) => {
     const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
     const { addToast } = useToast();
     
@@ -183,6 +184,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [editZipFile, setEditZipFile] = useState<File | null>(null);
     const [isEditingSaving, setIsEditingSaving] = useState(false);
 
+    // Edit Kit Modal State
+    const [editingKit, setEditingKit] = useState<DrumKit | null>(null);
+    const [editKitForm, setEditKitForm] = useState({ title: '', description: '', price: 0, tags: '' });
+    const [isEditingKitSaving, setIsEditingKitSaving] = useState(false);
+
     // Settings State
     const [links, setLinks] = useState<SocialLinks>(socialLinks);
     const [adminConfig, setAdminConfig] = useState<AdminSettings>(settings);
@@ -220,6 +226,17 @@ useEffect(() => {
         setEditZipFile(null);
     }
 }, [editingBeat]);
+
+useEffect(() => {
+    if (editingKit) {
+        setEditKitForm({
+            title: editingKit.title,
+            description: editingKit.description || '',
+            price: editingKit.price,
+            tags: editingKit.tags?.join(', ') || ''
+        });
+    }
+}, [editingKit]);
 
     // Upload para Cloudflare R2 via presigned POST
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
@@ -443,6 +460,30 @@ useEffect(() => {
             setIsEditingSaving(false);
         }
     };
+
+    const handleEditKitSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingKit) return;
+        setIsEditingKitSaving(true);
+        try {
+            const slug = editKitForm.title.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const updatedData = {
+                title: editKitForm.title.toUpperCase(),
+                slug,
+                description: editKitForm.description,
+                price: Number(editKitForm.price),
+                tags: editKitForm.tags.split(',').map(t => t.trim()).filter(Boolean)
+            };
+            await onUpdateDrumKit(editingKit.id, updatedData);
+            setEditingKit(null);
+        } catch (error) {
+            console.error(error);
+            addToast('Erro ao atualizar kit.', 'error');
+        } finally {
+            setIsEditingKitSaving(false);
+        }
+    };
+
     const handleAddCoupon = async () => {
   if (!newCouponCode || !newCouponDiscount) return;
   const { data, error } = await supabase.from('coupons').insert([{ code: newCouponCode.toUpperCase(), discount_percent: newCouponDiscount }]).select().single();
@@ -683,9 +724,14 @@ const handleDeleteCoupon = async (id: string) => {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => handleDeleteDrumKitClick(kit)} title="EXCLUIR" className="text-green-700 hover:text-red-500 p-2 border border-transparent hover:border-red-500/30 rounded-sm transition-all">
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button onClick={() => setEditingKit(kit)} title="EDITAR" className="text-green-700 hover:text-green-400 p-2 border border-transparent hover:border-green-500/30 rounded-sm transition-all">
+                                                        <EditIcon className="w-4 h-4"/>
+                                                    </button>
+                                                    <button onClick={() => handleDeleteDrumKitClick(kit)} title="EXCLUIR" className="text-green-700 hover:text-red-500 p-2 border border-transparent hover:border-red-500/30 rounded-sm transition-all">
+                                                        <Trash2 className="w-4 h-4"/>
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     )}
@@ -992,6 +1038,34 @@ const handleDeleteCoupon = async (id: string) => {
                                 <button type="button" onClick={() => setEditingBeat(null)} className="bg-transparent hover:bg-green-900/20 border border-green-900 text-green-600 font-mono font-bold py-2 px-4 rounded-sm transition-colors uppercase text-xs">Cancelar</button>
                                 <button type="submit" disabled={isEditingSaving} className="bg-green-600 hover:bg-green-500 text-black font-bold font-mono uppercase tracking-widest py-2 px-6 rounded-sm transition-colors disabled:opacity-50">
                                     {isEditingSaving ? '...' : 'SALVAR'}
+                                </button>
+                            </div>
+                        </form>
+                    </Card>
+                    </div>
+                </div>
+            )}
+            {editingKit && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto" aria-modal="true" role="dialog">
+                    <div className="min-h-[100px] w-full max-w-2xl flex items-center justify-center py-8">
+                    <Card className="p-8 w-full relative animate-fade-in-up bg-black border border-green-500/30 shadow-[0_0_30px_rgba(74,222,128,0.1)]">
+                        <button onClick={() => setEditingKit(null)} className="absolute top-4 right-4 text-green-700 hover:text-green-400 transition-colors z-10">
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-xl font-bold text-green-400 mb-6 font-mono uppercase tracking-widest">
+                            {'[EDIT.KIT] >'} <span className="text-white">{editingKit.title}</span>
+                        </h2>
+                        <form onSubmit={handleEditKitSubmit} className="space-y-6">
+                            <InputField label="Título" type="text" value={editKitForm.title} onChange={(e) => setEditKitForm(p => ({ ...p, title: e.target.value }))} required />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <InputField label="Preço (R$)" type="number" step="0.01" value={editKitForm.price} onChange={(e) => setEditKitForm(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} required />
+                                <InputField label="Tags (vírgula)" type="text" value={editKitForm.tags} onChange={(e) => setEditKitForm(p => ({ ...p, tags: e.target.value }))} placeholder="drill, trap, melody" />
+                            </div>
+                            <InputField label="Descrição" as="textarea" rows={3} value={editKitForm.description} onChange={(e) => setEditKitForm(p => ({ ...p, description: e.target.value }))} />
+                            <div className="flex justify-end gap-4 pt-4 border-t border-green-900/30">
+                                <button type="button" onClick={() => setEditingKit(null)} className="bg-transparent hover:bg-green-900/20 border border-green-900 text-green-600 font-mono font-bold py-2 px-4 rounded-sm transition-colors uppercase text-xs">Cancelar</button>
+                                <button type="submit" disabled={isEditingKitSaving} className="bg-green-600 hover:bg-green-500 text-black font-bold font-mono uppercase tracking-widest py-2 px-6 rounded-sm transition-colors disabled:opacity-50">
+                                    {isEditingKitSaving ? '...' : 'SALVAR'}
                                 </button>
                             </div>
                         </form>
