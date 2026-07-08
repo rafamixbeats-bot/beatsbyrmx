@@ -368,6 +368,24 @@ const App = () => {
     setIsCartOpen(true);
   };
 
+  const handleAddMultipleKitsToCart = (kits: DrumKit[]) => {
+    let addedCount = 0;
+    kits.forEach(kit => {
+      const itemId = `drum_kit-${kit.id}`;
+      if (!cartItems.some(ci => ci.id === itemId)) {
+        const newItem: CartItem = { id: itemId, productId: kit.id, type: 'drum_kit', title: kit.title, price: kit.price, description: 'Drum Kit' };
+        setCartItems(prev => [...prev, newItem]);
+        addedCount++;
+      }
+    });
+    if (addedCount > 0) {
+      addToast(`${addedCount} ${addedCount === 1 ? 'pack adicionado' : 'packs adicionados'} ao carrinho!`, 'success');
+      setIsCartOpen(true);
+    } else {
+      addToast('Todos os packs selecionados já estão no carrinho.', 'info');
+    }
+  };
+
   const handleRemoveFromCart = (itemId: string) => {
     setCartItems(prev => prev.filter(item => item.id !== itemId));
     addToast('Item removido do carrinho.', 'success');
@@ -472,7 +490,7 @@ const App = () => {
       case 'store':
         return <StoreSection beats={filteredBeats} onPlayBeat={handlePlayBeat} currentBeat={currentBeat} isPlaying={isPlaying} onAddToCartClick={handleAddToCartClick} onDownloadClick={handleDownloadClick} searchTerm={searchTerm} onSearch={setSearchTerm} socialLinks={socialLinks} />;
       case 'drum_kits':
-        return <DrumKitsSection drumKits={drumKits} onAddToCart={handleAddToCart} />;
+        return <DrumKitsSection drumKits={drumKits} onAddToCart={handleAddToCart} onAddMultipleToCart={handleAddMultipleKitsToCart} />;
       case 'checkout':
         return <CheckoutPage items={cartItems} settings={adminSettings} onConfirmPurchase={handleConfirmPurchase} onBackToStore={() => { setView('store'); navigate('/'); }} />;
       case 'admin':

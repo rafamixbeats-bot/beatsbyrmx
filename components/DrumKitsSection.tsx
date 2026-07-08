@@ -2,16 +2,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DrumKit } from '../App';
-import { ShoppingCart, Package, InfoIcon, Music, Play, Pause } from './icons';
+import { ShoppingCart, Package, InfoIcon, Music, Play, Pause, CheckSquare, Square } from './icons';
 
 interface DrumKitsSectionProps {
     drumKits: DrumKit[];
     onAddToCart: (kit: DrumKit) => void;
+    onAddMultipleToCart?: (kits: DrumKit[]) => void;
 }
 
-const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart }) => {
+const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart, onAddMultipleToCart }) => {
     const navigate = useNavigate();
     const [playingKitId, setPlayingKitId] = useState<string | null>(null);
+    const [selectedPacks, setSelectedPacks] = useState<Set<string>>(new Set());
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -41,6 +43,36 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
         setPlayingKitId(kit.id);
     };
 
+    const togglePackSelection = (kitId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedPacks(prev => {
+            const next = new Set(prev);
+            if (next.has(kitId)) {
+                next.delete(kitId);
+            } else {
+                next.add(kitId);
+            }
+            return next;
+        });
+    };
+
+    const toggleAllPacks = () => {
+        if (selectedPacks.size === drumKits.length) {
+            setSelectedPacks(new Set());
+        } else {
+            setSelectedPacks(new Set(drumKits.map(k => k.id)));
+        }
+    };
+
+    const handleAddSelectedToCart = () => {
+        if (!onAddMultipleToCart || selectedPacks.size === 0) return;
+        const selected = drumKits.filter(k => selectedPacks.has(k.id));
+        onAddMultipleToCart(selected);
+        setSelectedPacks(new Set());
+    };
+
+    const allSelected = selectedPacks.size === drumKits.length && drumKits.length > 0;
+
     return (
         <div className="min-h-screen bg-black text-green-500 font-mono">
              <div className="container mx-auto px-4 pt-12 md:pt-16 pb-8 border-b border-green-900/30">
@@ -57,6 +89,19 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
             </div>
 
             <div className="container mx-auto px-4 py-12">
+                 {drumKits.length > 0 && (
+                     <div className="flex items-center justify-between mb-6">
+                         <button onClick={toggleAllPacks} className="flex items-center gap-2 text-xs text-green-700 hover:text-green-400 transition-colors uppercase tracking-widest">
+                             {allSelected ? <CheckSquare className="w-4 h-4 text-green-400" /> : <Square className="w-4 h-4" />}
+                             {allSelected ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                         </button>
+                         {selectedPacks.size > 0 && onAddMultipleToCart && (
+                             <button onClick={handleAddSelectedToCart} className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-black font-bold font-mono text-xs uppercase tracking-widest py-2 px-4 rounded-sm transition-all shadow-[0_0_15px_rgba(74,222,128,0.4)]">
+                                 <ShoppingCart className="w-4 h-4" /> Adicionar {selectedPacks.size} {selectedPacks.size === 1 ? 'Pack' : 'Packs'} ao Carrinho
+                             </button>
+                         )}
+                     </div>
+                 )}
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {drumKits.length > 0 ? (
                         drumKits.map((kit, index) => {
@@ -66,12 +111,17 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                              return (
                                 <div key={kit.id} className="group relative bg-black border border-green-900/40 hover:border-green-400 transition-all duration-300 rounded-sm overflow-hidden hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] flex flex-col animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                                     
-                                    <div className="flex justify-between items-center p-2 border-b border-green-900/30 bg-green-900/5 select-none">
-                                        <span className="text-[10px] text-green-700 font-bold">{atomicNumber}</span>
-                                        <span className="text-[10px] text-green-700 font-bold tracking-wider">
-                                            {kit.samples.length > 0 ? `${kit.samples.length} FILES` : 'SOLID STATE'}
-                                        </span>
-                                    </div>
+                                     <div className="flex justify-between items-center p-2 border-b border-green-900/30 bg-green-900/5 select-none">
+                                         <div className="flex items-center gap-2">
+                                             <button onClick={(e) => togglePackSelection(kit.id, e)} className="text-green-700 hover:text-green-400 transition-colors">
+                                                 {selectedPacks.has(kit.id) ? <CheckSquare className="w-4 h-4 text-green-400" /> : <Square className="w-4 h-4" />}
+                                             </button>
+                                             <span className="text-[10px] text-green-700 font-bold">{atomicNumber}</span>
+                                         </div>
+                                         <span className="text-[10px] text-green-700 font-bold tracking-wider">
+                                             {kit.samples.length > 0 ? `${kit.samples.length} FILES` : 'SOLID STATE'}
+                                         </span>
+                                     </div>
 
                                     <div className="relative aspect-square overflow-hidden bg-black/50 border-b border-green-900/30 group-hover:border-green-500/50 transition-colors cursor-pointer" onClick={() => navigate(`/pack/${kit.slug}`)}>
                                         <img 
