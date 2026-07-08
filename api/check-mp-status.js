@@ -10,32 +10,30 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (!id) {
-    return res.status(400).json({ error: 'Order ID required' });
+    return res.status(400).json({ error: 'Payment ID required' });
   }
 
   try {
-    const response = await fetch(`https://api.mercadopago.com/v1/orders/${id}`, {
+    const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
       headers: {
         'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
       }
     });
 
-    const order = await response.json();
+    const payment = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: order.message || 'Error fetching order' });
+      return res.status(response.status).json({ error: payment.message || 'Error fetching payment' });
     }
 
-    const payment = order.transactions?.payments?.[0];
-
     return res.status(200).json({
-      id: order.id,
-      status: order.status,
-      payment_status: payment?.status || null,
-      payment_method: payment?.payment_method_id || null,
-      qr_code: payment?.qr_code || null,
-      qr_code_base64: payment?.qr_code_base64 || null,
-      ticket_url: payment?.ticket_url || null
+      id: payment.id,
+      status: payment.status,
+      status_detail: payment.status_detail || null,
+      payment_method: payment.payment_method_id || null,
+      qr_code: payment.point_of_interaction?.transaction_data?.qr_code || null,
+      qr_code_base64: payment.point_of_interaction?.transaction_data?.qr_code_base64 || null,
+      ticket_url: payment.point_of_interaction?.transaction_data?.ticket_url || null
     });
 
   } catch (error) {

@@ -18,32 +18,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No items provided' });
     }
 
-    const now = new Date();
-    const expiration = new Date(now.getTime() + 30 * 60 * 1000);
-
-    const orderItems = items.map(item => ({
-      title: item.title,
-      description: item.description || item.title,
-      quantity: 1,
-      unit_price: Number(item.price),
-      currency_id: 'BRL'
-    }));
+    const description = items.length === 1
+      ? items[0].title
+      : `${items.length} beats - RMX Beats`;
 
     const body = {
-      type: 'online',
-      external_reference: `RMX-${Date.now()}`,
-      transactions: {
-        payments: [{
-          payment_method_id: 'pix',
-          amount: Number(total),
-          date_of_expiration: expiration.toISOString(),
-          descriptor: 'RMXBEATS'
-        }]
-      },
-      items: orderItems
+      transaction_amount: Number(total),
+      description: description,
+      payment_method_id: 'pix',
+      payer: {
+        email: 'buyer@beatsbyrmx.com'
+      }
     };
 
-    const response = await fetch('https://api.mercadopago.com/v1/orders', {
+    const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,18 +45,21 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error('MP Error:', JSON.stringify(data));
-      return res.status(response.status).json({ error: data.message || 'Error creating Pix payment', details: data });
+      return res.status(response.status).json({
+        error: data.message || 'Error creating Pix payment',
+        details: data
+      });
     }
 
-    const payment = data.transactions?.payments?.[0];
+    const pixData = data.point_of_interaction?.transaction_data;
 
     return res.status(200).json({
       id: data.id,
-      qr_code: payment?.qr_code || null,
-      qr_code_base64: payment?.qr_code_base64 || null,
-      ticket_url: payment?.ticket_url || null,
-      external_reference: data.external_reference,
-      expiration: expiration.toISOString()
+      status: data.status,
+      qr_code: pixData?.qr_code || null,
+      qr_code_base64: pixData?.qr_code_base64 || null,
+      ticket_url: pixData?.ticket_url || null,
+      expiration: data.date_of_expiration || null
     });
 
   } catch (error) {
