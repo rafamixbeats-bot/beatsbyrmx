@@ -59,18 +59,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const setAudioData = () => setDuration(audio.duration);
+    const setAudioData = () => {
+      if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
+    };
     const setAudioTime = () => {
+      if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
       setCurrentTime(audio.currentTime);
-      if (progressRef.current && audio.duration) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progressRef.current.style.setProperty('--progress', `${pct}%`);
-      }
     };
     audio.addEventListener('loadeddata', setAudioData);
+    audio.addEventListener('loadedmetadata', setAudioData);
+    audio.addEventListener('durationchange', setAudioData);
     audio.addEventListener('timeupdate', setAudioTime);
     return () => {
         audio.removeEventListener('loadeddata', setAudioData);
+        audio.removeEventListener('loadedmetadata', setAudioData);
+        audio.removeEventListener('durationchange', setAudioData);
         audio.removeEventListener('timeupdate', setAudioTime);
     }
   }, []);
