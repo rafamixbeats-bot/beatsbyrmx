@@ -13,6 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1080.0",
     "@stripe/stripe-js": "^9.9.0",
     "@supabase/supabase-js": "^2.39.0",
+    "mercadopago": "^3.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.18.1",

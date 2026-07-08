@@ -361,3 +361,37 @@ export const ArrowLeft: React.FC<IconProps> = ({ className }) => (
         <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
 );
+
+export const QrCode: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="8" height="8" rx="1"></rect>
+        <rect x="14" y="2" width="8" height="8" rx="1"></rect>
+        <rect x="2" y="14" width="8" height="8" rx="1"></rect>
+        <rect x="14" y="14" width="4" height="4" rx="1"></rect>
+        <line x1="22" y1="14" x2="22" y2="14.01"></line>
+        <line x1="22" y1="18" x2="22" y2="18.01"></line>
+        <line x1="18" y1="22" x2="18" y2="22.01"></line>
+        <line x1="14" y1="22" x2="14" y2="22.01"></line>
+    </svg>
+);
+
+export const Copy: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+);
+
+export const CheckCircle: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+);
+
+export const Clock: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+);
