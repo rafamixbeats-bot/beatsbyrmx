@@ -394,7 +394,7 @@ const App = () => {
   };
 
   const handleDeleteDrumKit = async (kit: DrumKit) => {
-    const filesToDelete = [kit.zipUrl, kit.artworkUrl].filter(Boolean);
+    const filesToDelete = [kit.download_url, kit.artworkUrl].filter(Boolean);
     if (filesToDelete.length > 0) {
       try { await fetch('/api/delete-r2-files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileUrls: filesToDelete }) }); } catch (e) {}
     }

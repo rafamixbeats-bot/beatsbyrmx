@@ -22,9 +22,12 @@ export default async function handler(req, res) {
       ? items[0].title
       : `${items.length} beats - RMX Beats`;
 
+    const externalReference = `RMX-${Date.now()}`;
+
     const body = {
       transaction_amount: Number(total),
       description: description,
+      external_reference: externalReference,
       payment_method_id: 'pix',
       payer: {
         email: 'buyer@beatsbyrmx.com'
@@ -56,6 +59,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       id: data.id,
       status: data.status,
+      external_reference: externalReference,
       qr_code: pixData?.qr_code || null,
       qr_code_base64: pixData?.qr_code_base64 || null,
       ticket_url: pixData?.ticket_url || null,

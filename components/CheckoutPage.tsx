@@ -100,12 +100,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
             try {
                 const res = await fetch(`/api/check-mp-status?id=${orderId}`);
                 const data = await res.json();
-                if (data.payment_status === 'approved' || data.status === 'closed') {
+                if (data.status === 'approved' || data.status === 'closed') {
                     clearInterval(pollRef.current);
                     clearInterval(timerRef.current);
                     setStep('pix_paid');
                     onConfirmPurchase();
-                } else if (data.payment_status === 'cancelled' || data.payment_status === 'refunded') {
+                } else if (data.status === 'cancelled' || data.status === 'refunded') {
                     clearInterval(pollRef.current);
                     clearInterval(timerRef.current);
                     setStep('pix_expired');
