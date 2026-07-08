@@ -128,7 +128,10 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
             return;
         }
         const audio = new Audio(sample.file_url);
-        audio.play();
+        audio.play().catch(err => {
+            console.error(`Erro ao tocar ${sample.file_name}:`, err);
+            setPlayingId(null);
+        });
         audio.onended = () => {
             setPlayingId(null);
             setProgress(0);
