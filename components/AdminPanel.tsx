@@ -367,10 +367,13 @@ useEffect(() => {
 
             const sampleUrls = await Promise.all(
                 kitSampleFiles.map(async (file) => {
-                    const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type || 'audio/wav')}`);
+                    const ext = file.name.split('.').pop()?.toLowerCase() || 'wav';
+                    const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
+                    const contentType = mimeMap[ext] || file.type || 'audio/wav';
+                    const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
                     if (!res.ok) throw new Error('Falha ao obter URL de upload');
                     const { uploadUrl, publicUrl } = await res.json();
-                    const uploadRes = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'audio/wav' } });
+                    const uploadRes = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': contentType } });
                     if (!uploadRes.ok) throw new Error(`Upload falhou: ${file.name}`);
                     return { file_name: file.name, file_url: publicUrl };
                 })
