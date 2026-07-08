@@ -139,15 +139,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
               
               <div className="flex items-center justify-center gap-3 w-full max-w-xl">
                 <span className="text-[10px] text-green-600 w-10 text-right font-mono tracking-wider">{formatTime(currentTime)}</span>
-                <input
-                    type="range"
-                    ref={progressRef}
-                    min="0"
-                    max={duration || 0}
-                    value={currentTime}
-                    onChange={handleSeek}
-                    className="player-progress w-full h-1 appearance-none cursor-pointer rounded-full"
-                />
+                <div className="relative w-full h-4 flex items-center">
+                  <div className="absolute h-1 rounded-full bg-green-900/30 left-0 right-0 top-1/2 -translate-y-1/2"></div>
+                  <div className="absolute h-1 rounded-full bg-green-400 left-0 top-1/2 -translate-y-1/2" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}></div>
+                  <input
+                      type="range"
+                      ref={progressRef}
+                      min="0"
+                      max={duration || 0}
+                      value={currentTime}
+                      onChange={handleSeek}
+                      className="player-progress relative z-10 w-full h-1 appearance-none cursor-pointer rounded-full"
+                  />
+                </div>
                 <span className="text-[10px] text-green-600 w-10 text-left font-mono tracking-wider">{formatTime(duration)}</span>
               </div>
           </div>

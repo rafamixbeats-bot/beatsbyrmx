@@ -57,12 +57,17 @@
         position: relative;
       }
       input[type=range].player-progress::-webkit-slider-runnable-track {
-        background: linear-gradient(to right, #4ade80 0%, #4ade80 var(--progress, 0%), rgba(22, 101, 52, 0.3) var(--progress, 0%), rgba(22, 101, 52, 0.3) 100%);
+        background: rgba(22, 101, 52, 0.3);
         height: 0.25rem;
         border-radius: 0.5rem;
       }
       input[type=range].player-progress::-moz-range-track {
-        background: linear-gradient(to right, #4ade80 0%, #4ade80 var(--progress, 0%), rgba(22, 101, 52, 0.3) var(--progress, 0%), rgba(22, 101, 52, 0.3) 100%);
+        background: rgba(22, 101, 52, 0.3);
+        height: 0.25rem;
+        border-radius: 0.5rem;
+      }
+      input[type=range].player-progress::-moz-range-progress {
+        background: #4ade80;
         height: 0.25rem;
         border-radius: 0.5rem;
       }
