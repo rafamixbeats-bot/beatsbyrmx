@@ -30,43 +30,44 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying && currentBeat) {
-      if (audio.src !== currentBeat.audioPreviewUrl) {
-        audio.src = currentBeat.audioPreviewUrl;
-        setCurrentTime(0);
-        setDuration(0);
-      }
-      audio.play().catch(error => {
-        if (error.name !== 'AbortError') {
-          console.error("Audio play failed:", error);
-        }
-      });
-    } else {
-      audio.pause();
-    }
-  }, [isPlaying, currentBeat]);
-
-  useEffect(() => {
-    if (audioRef.current) audioRef.current.loop = isLooping;
+    audio.loop = isLooping;
   }, [isLooping]);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
-  }, [volume, isMuted]);
-
-  const handleLoadedMetadata = () => {
-    const audio = audioRef.current;
-    if (audio && audio.duration && isFinite(audio.duration)) {
-      setDuration(audio.duration);
-    }
-  };
-
-  const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.duration && isFinite(audio.duration)) setDuration(audio.duration);
-    setCurrentTime(audio.currentTime);
-  };
+    audio.volume = isMuted ? 0 : volume;
+  }, [volume, isMuted]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentBeat) return;
+
+    if (isPlaying) {
+      audio.load();
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying, currentBeat?.audioPreviewUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const tick = () => {
+      const d = audio.duration;
+      if (d && isFinite(d)) setDuration(d);
+      if (!audio.paused) setCurrentTime(audio.currentTime);
+    };
+
+    tick();
+    const interval = setInterval(tick, 200);
+    return () => clearInterval(interval);
+  }, [currentBeat?.audioPreviewUrl]);
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const bar = seekRef.current;
@@ -76,6 +77,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
     const x = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, x / rect.width));
     audio.currentTime = pct * duration;
+    setCurrentTime(audio.currentTime);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,16 +103,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
 
   if (!currentBeat) return null;
 
-  const progressPct = duration ? (currentTime / duration) * 100 : 0;
+  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <audio
         ref={audioRef}
+        src={currentBeat.audioPreviewUrl}
         onEnded={onNext}
-        onLoadedMetadata={handleLoadedMetadata}
-        onDurationChange={handleLoadedMetadata}
-        onTimeUpdate={handleTimeUpdate}
+        preload="auto"
       />
 
       <div className="bg-[#0b0118]/95 backdrop-blur-xl border-t border-green-500/20 grid grid-cols-3 w-full p-3 px-6 items-center shadow-[0_-5px_20px_rgba(88,28,135,0.3)]">
@@ -147,11 +148,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ currentBeat, isPlaying, onPla
                   onClick={handleSeek}
                   className="relative w-full h-4 flex items-center cursor-pointer group"
                 >
-                  {/* Background track */}
                   <div className="absolute h-1 rounded-full bg-green-900/30 left-0 right-0 top-1/2 -translate-y-1/2 group-hover:h-1.5 transition-all"></div>
-                  {/* Progress fill */}
                   <div className="absolute h-1 rounded-full bg-green-400 left-0 top-1/2 -translate-y-1/2 group-hover:h-1.5 transition-all" style={{ width: `${progressPct}%` }}></div>
-                  {/* Thumb */}
                   <div className="absolute w-3 h-3 rounded-full bg-green-400 top-1/2 -translate-y-1/2 -translate-x-1/2 shadow-[0_0_5px_rgba(74,222,128,0.5)] opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: `${progressPct}%` }}></div>
                 </div>
                 <span className="text-[10px] text-green-600 w-10 text-left font-mono tracking-wider">{formatTime(duration)}</span>
