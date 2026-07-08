@@ -1,13 +1,8 @@
 
 import React from 'react';
-import { View } from '../App';
-import { Settings } from './icons';
+import { Link } from 'react-router-dom';
 
-interface FooterProps {
-    onAdminClick: () => void;
-}
-
-const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
+const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -26,8 +21,8 @@ const Footer: React.FC<FooterProps> = ({ onAdminClick }) => {
              </div>
 
              <div className="flex items-center gap-8">
-                <a href="#" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">TERMS_OF_SERVICE</a>
-                <a href="#" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">PRIVACY_POLICY</a>
+                <Link to="/terms" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">TERMS_OF_SERVICE</Link>
+                <Link to="/privacy" className="text-green-800 hover:text-green-400 transition-colors font-mono uppercase tracking-wider">PRIVACY_POLICY</Link>
              </div>
         </div>
       </div>

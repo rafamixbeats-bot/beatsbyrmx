@@ -18,6 +18,8 @@ import AboutPage from "./components/AboutPage";
 import PricingPage from "./components/PricingPage";
 import ProducersPage from "./components/ProducersPage";
 import BeatPage from "./components/BeatPage";
+import TermsPage from "./components/TermsPage";
+import PrivacyPage from "./components/PrivacyPage";
 import { supabase } from './supabaseClient';
 
 // Type definitions
@@ -125,6 +127,12 @@ const LicenseSelectionModal: React.FC<{
   onAddToCart: (beat: Beat, license: LicenseOption) => void;
   onViewLicenseTerms: (license: LicenseOption) => void;
 }> = ({ beat, options, onClose, onAddToCart, onViewLicenseTerms }) => {
+  const [termsAccepted, setTermsAccepted] = React.useState(false);
+
+  React.useEffect(() => {
+    setTermsAccepted(false);
+  }, [beat]);
+
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-black border border-green-900/50 shadow-[0_0_30px_rgba(34,197,94,0.1)] p-8 rounded-sm w-full max-w-lg relative" onClick={e => e.stopPropagation()}>
@@ -141,12 +149,30 @@ const LicenseSelectionModal: React.FC<{
               <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-shrink-0">
                 <span className="font-bold text-green-400 font-mono">R$ {opt.price.toFixed(2)}</span>
                 <button onClick={() => onViewLicenseTerms(opt)} className="text-[10px] text-green-600 hover:text-green-300 font-mono underline uppercase">TERMOS</button>
-                <button onClick={() => onAddToCart(beat, opt)} className="bg-green-700 hover:bg-green-500 text-black font-bold font-mono uppercase text-xs py-2 px-4 rounded-sm transition-colors">
+                <button
+                  onClick={() => { if (termsAccepted) onAddToCart(beat, opt); }}
+                  disabled={!termsAccepted}
+                  className={`font-bold font-mono uppercase text-xs py-2 px-4 rounded-sm transition-colors ${termsAccepted ? 'bg-green-700 hover:bg-green-500 text-black cursor-pointer' : 'bg-green-900/30 text-green-800 cursor-not-allowed border border-green-900/30'}`}
+                >
                   Adicionar
                 </button>
               </div>
             </div>
           ))}
+        </div>
+        <div className="mt-6 pt-4 border-t border-green-900/30">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-1 w-4 h-4 accent-green-500 bg-black border-green-700 rounded"
+            />
+            <span className="text-[11px] text-green-700 font-mono leading-relaxed group-hover:text-green-500 transition-colors">
+              Li e aceito os <span className="text-green-400 underline">termos da licença</span> e os{' '}
+              <span className="text-green-400 underline">Termos de Serviço</span> do beatsbyrmx
+            </span>
+          </label>
         </div>
       </div>
     </div>
@@ -429,10 +455,12 @@ const App = () => {
               onDownloadClick={handleDownloadClick}
             />
           } />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="*" element={renderView()} />
         </Routes>
       </main>
-      <Footer onAdminClick={() => { setView('admin'); navigate('/admin'); }} />
+      <Footer />
       <ShoppingCartComponent items={cartItems} onRemoveItem={handleRemoveFromCart} onCheckout={handleCheckout} isOpen={isCartOpen} setIsOpen={setIsCartOpen} onNavigate={handleNavigate} />
       <AudioPlayer currentBeat={currentBeat} isPlaying={isPlaying} onPlayPause={handlePlayPause} onNext={playNext} onPrevious={playPrevious} isLooping={isLooping} onToggleLoop={() => setIsLooping(!isLooping)} />
       {licenseModalInfo && <LicenseSelectionModal beat={licenseModalInfo.beat} options={licenseModalInfo.options} onClose={() => setLicenseModalInfo(null)} onAddToCart={handleAddToCart} onViewLicenseTerms={(license) => setLicenseTermsInfo({ beat: licenseModalInfo.beat, license })} />}

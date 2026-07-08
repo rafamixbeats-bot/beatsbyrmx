@@ -17,6 +17,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
     const [discount, setDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
     const [couponSuccess, setCouponSuccess] = useState('');
+    const [termsAccepted, setTermsAccepted] = useState(false);
 
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discountAmount = subtotal * (discount / 100);
@@ -135,6 +136,24 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                 </div>
 
                 <div className="space-y-6">
+                    <Card className="p-6 border-slate-700">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                className="mt-1 w-4 h-4 accent-green-500 bg-slate-800 border-slate-600 rounded"
+                            />
+                            <span className="text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                                Li e aceito os{' '}
+                                <a href="/terms" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline">Termos de Serviço</a>
+                                {' '}e a{' '}
+                                <a href="/privacy" target="_blank" className="text-indigo-400 hover:text-indigo-300 underline">Política de Privacidade</a>
+                                {' '}do beatsbyrmx
+                            </span>
+                        </label>
+                    </Card>
+
                     <Card className="p-8 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
                         <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center gap-2">
                             <DollarSign className="w-6 h-6 text-indigo-400" /> Cartão de Crédito / Débito
@@ -142,8 +161,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                         <p className="text-slate-300 mb-6">Pagamento internacional via Stripe.</p>
                         <button
                             onClick={handleStripeCheckout}
-                            disabled={items.length === 0 || loading}
-                            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-lg disabled:opacity-50"
+                            disabled={items.length === 0 || loading || !termsAccepted}
+                            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? 'REDIRECIONANDO...' : 'PAGAR COM CARTÃO'}
                         </button>
@@ -156,8 +175,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, settings, onConfirmP
                         <p className="text-slate-300 mb-6">Pague via Pix e confirme pelo WhatsApp.</p>
                         <button
                             onClick={handleWhatsAppCheckout}
-                            disabled={items.length === 0}
-                            className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-lg disabled:opacity-50"
+                            disabled={items.length === 0 || !termsAccepted}
+                            className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span>FINALIZAR NO WHATSAPP</span>
                             <ArrowDownToLine className="w-5 h-5 rotate-[-90deg]" />
