@@ -432,8 +432,9 @@ const App = () => {
 
   const handleAddDrumKit = async (newKit: DrumKit) => {
     const { samples, ...kitData } = newKit;
+    console.log('Inserting kit:', kitData);
     const { data, error } = await supabase.from('drum_kits').insert([kitData]).select().single();
-    if (error) { addToast('Erro ao salvar kit!', 'error'); return; }
+    if (error) { console.error('Supabase error:', error); addToast(`Erro ao salvar kit: ${error.message}`, 'error'); return; }
     if (samples && samples.length > 0) {
       const samplesWithPackId = samples.map(s => ({ ...s, pack_id: data.id }));
       const { error: samplesError } = await supabase.from('drum_kit_samples').insert(samplesWithPackId);
