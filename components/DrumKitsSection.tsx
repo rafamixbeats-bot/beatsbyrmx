@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DrumKit } from '../App';
-import { ShoppingCart, Package, InfoIcon, Music } from './icons';
+import { ShoppingCart, Package, InfoIcon, Music, Play, Pause } from './icons';
 
 interface DrumKitsSectionProps {
     drumKits: DrumKit[];
@@ -11,10 +11,38 @@ interface DrumKitsSectionProps {
 
 const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart }) => {
     const navigate = useNavigate();
+    const [playingKitId, setPlayingKitId] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    const handlePreviewKit = (e: React.MouseEvent, kit: DrumKit) => {
+        e.stopPropagation();
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+        if (playingKitId === kit.id) {
+            setPlayingKitId(null);
+            return;
+        }
+        const sample = kit.samples?.[0];
+        if (!sample) return;
+        const audio = new Audio(sample.file_url);
+        audio.play();
+        audio.onended = () => setPlayingKitId(null);
+        audioRef.current = audio;
+        setPlayingKitId(kit.id);
+    };
 
     return (
         <div className="min-h-screen bg-black text-green-500 font-mono">
-             {/* Header Section Lab Style */}
              <div className="container mx-auto px-4 pt-12 md:pt-16 pb-8 border-b border-green-900/30">
                 <div className="flex items-center gap-2 mb-2 animate-fade-in">
                     <Package className="w-5 h-5 text-green-400" />
@@ -29,7 +57,6 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
             </div>
 
             <div className="container mx-auto px-4 py-12">
-                 {/* Grid Elements Style */}
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {drumKits.length > 0 ? (
                         drumKits.map((kit, index) => {
@@ -39,7 +66,6 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                              return (
                                 <div key={kit.id} className="group relative bg-black border border-green-900/40 hover:border-green-400 transition-all duration-300 rounded-sm overflow-hidden hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] flex flex-col animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                                     
-                                    {/* Top Info Bar */}
                                     <div className="flex justify-between items-center p-2 border-b border-green-900/30 bg-green-900/5 select-none">
                                         <span className="text-[10px] text-green-700 font-bold">{atomicNumber}</span>
                                         <span className="text-[10px] text-green-700 font-bold tracking-wider">
@@ -47,7 +73,6 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                         </span>
                                     </div>
 
-                                    {/* Image / Specimen Area - clickable to detail */}
                                     <div className="relative aspect-square overflow-hidden bg-black/50 border-b border-green-900/30 group-hover:border-green-500/50 transition-colors cursor-pointer" onClick={() => navigate(`/pack/${kit.slug}`)}>
                                         <img 
                                             src={kit.artworkUrl} 
@@ -55,11 +80,9 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                             className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 scale-100 group-hover:scale-110"
                                         />
                                         
-                                        {/* Scanning Effect Overlay */}
                                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none mix-blend-overlay"></div>
                                         <div className="absolute top-0 left-0 w-full h-[2px] bg-green-400/50 shadow-[0_0_10px_rgba(74,222,128,0.8)] transform -translate-y-full group-hover:translate-y-[400px] transition-transform duration-[1.5s] ease-linear pointer-events-none"></div>
 
-                                        {/* Atomic Symbol Overlay Box */}
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                             <div className="bg-black/40 backdrop-blur-sm border border-green-500/30 w-24 h-24 flex items-center justify-center rounded-sm group-hover:bg-black/60 group-hover:border-green-400 transition-all duration-300">
                                                 <span className="text-5xl font-bold text-green-500 group-hover:text-green-400 tracking-tighter drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] group-hover:drop-shadow-[0_0_15px_rgba(74,222,128,0.6)] transition-all">
@@ -67,15 +90,22 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                                 </span>
                                             </div>
                                         </div>
+
+                                        {/* Play Preview Button - center of artwork */}
+                                        {kit.samples && kit.samples.length > 0 && (
+                                            <button onClick={(e) => handlePreviewKit(e, kit)} className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all ${playingKitId === kit.id ? 'bg-green-500 border-green-400 text-black shadow-[0_0_20px_rgba(74,222,128,0.6)]' : 'bg-black/60 border-green-400/60 text-green-400 hover:bg-green-500 hover:text-black hover:border-green-400'}`}>
+                                                    {playingKitId === kit.id ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+                                                </div>
+                                            </button>
+                                        )}
                                         
-                                        {/* Tech Corner Markers */}
                                         <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-green-500/60 transition-all group-hover:w-4 group-hover:h-4"></div>
                                         <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-green-500/60 transition-all group-hover:w-4 group-hover:h-4"></div>
                                         <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-green-500/60 transition-all group-hover:w-4 group-hover:h-4"></div>
                                         <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-green-500/60 transition-all group-hover:w-4 group-hover:h-4"></div>
                                     </div>
 
-                                    {/* Info Body */}
                                     <div className="p-4 flex flex-col flex-grow bg-black/80 backdrop-blur-sm">
                                         <h3 className="text-xl font-bold text-green-400 mb-1 truncate tracking-wider group-hover:text-green-300 transition-colors cursor-pointer" onClick={() => navigate(`/pack/${kit.slug}`)}>{kit.title}</h3>
                                         <p className="text-[10px] text-green-800 uppercase tracking-widest mb-4 line-clamp-2 min-h-[2.5em] group-hover:text-green-700 transition-colors">
