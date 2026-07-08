@@ -381,7 +381,7 @@ useEffect(() => {
             setKitSubmissionStatus('saving');
             setKitSubmissionMessage('Registrando kit...');
             
-            const finalArtwork = artworkUrl || `https://placehold.co/400x400/1e1b4b/ffffff?text=${encodeURIComponent(kitTitle)}`;
+            const finalArtwork = artworkUrl || `https://placehold.co/400x400/000000/22c55e?text=${encodeURIComponent(kitTitle)}`;
             const slug = kitTitle.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
             const samples: DrumKitSample[] = sampleUrls.map((s, i) => ({
