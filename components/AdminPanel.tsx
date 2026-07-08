@@ -255,12 +255,6 @@ useEffect(() => {
 
     const handleDeleteBeatClick = async (beat: Beat) => {
         if (!confirm(`EXCLUIR "${beat.title}"?`)) return;
-        
-        try {
-            // Arquivo será mantido no B2 por segurança
-            // Para deletar manualmente, acesse o painel do Backblaze B2
-        } catch(e) {}
-
         onDeleteBeat(beat);
     };
 

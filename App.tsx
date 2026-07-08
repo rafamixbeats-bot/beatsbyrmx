@@ -376,6 +376,10 @@ const App = () => {
   };
 
   const handleDeleteBeat = async (beat: Beat) => {
+    const filesToDelete = [beat.audioPreviewUrl, beat.wavUrl, beat.stemsUrl].filter(Boolean);
+    if (filesToDelete.length > 0) {
+      try { await fetch('/api/delete-r2-files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileUrls: filesToDelete }) }); } catch (e) {}
+    }
     const { error } = await supabase.from('beats').delete().eq('id', beat.id);
     if (error) { addToast('Erro ao excluir beat!', 'error'); return; }
     setBeats(prev => prev.filter(b => b.id !== beat.id));
@@ -390,6 +394,10 @@ const App = () => {
   };
 
   const handleDeleteDrumKit = async (kit: DrumKit) => {
+    const filesToDelete = [kit.zipUrl, kit.artworkUrl].filter(Boolean);
+    if (filesToDelete.length > 0) {
+      try { await fetch('/api/delete-r2-files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileUrls: filesToDelete }) }); } catch (e) {}
+    }
     const { error } = await supabase.from('drum_kits').delete().eq('id', kit.id);
     if (error) { addToast('Erro ao excluir kit!', 'error'); return; }
     setDrumKits(prev => prev.filter(k => k.id !== kit.id));
