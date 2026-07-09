@@ -23,26 +23,30 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, cartCount, onToggleCart }) 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
           
-          {/* Desktop: Logo + Nav Links + Cart */}
-          <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => onNavigate('store')} className="focus:outline-none group flex-shrink-0" aria-label="Página Inicial RMXBEATS">
-              <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
-            </button>
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => onNavigate(link.id)}
-                className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
-              >
-                {link.label}
+          {/* Desktop: Logo + Nav Links + Cart - Centro */}
+          <div className="hidden md:flex items-center w-full">
+            <div className="flex-1"></div>
+            <div className="flex items-center gap-8">
+              <button onClick={() => onNavigate('store')} className="focus:outline-none group flex-shrink-0" aria-label="Página Inicial RMXBEATS">
+                <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
               </button>
-            ))}
-            <button onClick={onToggleCart} className="text-green-400 hover:text-green-300 transition-colors relative hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
-              <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-purple-600 text-white text-[9px] font-bold font-mono w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
-              )}
-            </button>
+              {navLinks.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => onNavigate(link.id)}
+                  className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
+                >
+                  {link.label}
+                </button>
+              ))}
+              <button onClick={onToggleCart} className="text-green-400 hover:text-green-300 transition-colors relative hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-purple-600 text-white text-[9px] font-bold font-mono w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
+                )}
+              </button>
+            </div>
+            <div className="flex-1"></div>
           </div>
 
           {/* Mobile: Hamburger + Logo centrada + Cart */}
