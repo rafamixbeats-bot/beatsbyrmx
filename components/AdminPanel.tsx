@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from './ContactSection';
 import { UploadCloud, LogOut, BarChart2, Settings, Trash2, Music, Package, DollarSign, InfoIcon, LayersIcon, SoundWave, User, EditIcon, X, AlertTriangleIcon, CheckCircleIcon } from './icons';
 import type { Beat, SocialLinks, DrumKit, DrumKitSample, AdminSettings } from '../App';
@@ -190,6 +190,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [isEditingKitSaving, setIsEditingKitSaving] = useState(false);
     const [editKitNewFiles, setEditKitNewFiles] = useState<File[]>([]);
     const [editKitUploading, setEditKitUploading] = useState(false);
+    const [corruptedSamples, setCorruptedSamples] = useState<Set<string>>(new Set());
+    const [checkingSamples, setCheckingSamples] = useState(false);
 
     // Settings State
     const [links, setLinks] = useState<SocialLinks>(socialLinks);
@@ -611,6 +613,96 @@ useEffect(() => {
         } finally {
             setEditKitUploading(false);
         }
+    };
+
+    const handleDetectCorrupted = async () => {
+        if (!editingKit || editingKit.samples.length === 0) return;
+        setCheckingSamples(true);
+        setCorruptedSamples(new Set());
+        const corrupted = new Set<string>();
+
+        const checkPromises = editingKit.samples.map(async (sample) => {
+            try {
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const res = await fetch(sample.file_url);
+                if (!res.ok) { corrupted.add(sample.id); return; }
+                const buf = await res.arrayBuffer();
+                if (buf.byteLength < 1024) { corrupted.add(sample.id); return; }
+                await audioCtx.decodeAudioData(buf);
+                audioCtx.close();
+            } catch {
+                corrupted.add(sample.id);
+            }
+        });
+
+        await Promise.all(checkPromises);
+        setCorruptedSamples(corrupted);
+        setCheckingSamples(false);
+
+        if (corrupted.size > 0) {
+            addToast(`${corrupted.size} sample(s) corrompidos detectados!`, 'error');
+        } else {
+            addToast('Todos os samples estão OK!', 'success');
+        }
+    };
+
+    const MiniWaveform: React.FC<{ url: string; isCorrupted: boolean }> = ({ url, isCorrupted }) => {
+        const canvasRef = useRef<HTMLCanvasElement>(null);
+        const [loaded, setLoaded] = useState(false);
+
+        useEffect(() => {
+            if (isCorrupted) return;
+            let cancelled = false;
+            const load = async () => {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) return;
+                    const arrayBuffer = await res.arrayBuffer();
+                    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                    if (cancelled) return;
+                    const rawData = audioBuffer.getChannelData(0);
+                    const samples = 40;
+                    const blockSize = Math.floor(rawData.length / samples);
+                    const peaks: number[] = [];
+                    for (let i = 0; i < samples; i++) {
+                        let sum = 0;
+                        const start = i * blockSize;
+                        for (let j = start; j < start + blockSize && j < rawData.length; j++) {
+                            sum += Math.abs(rawData[j]);
+                        }
+                        peaks.push(sum / blockSize);
+                    }
+                    const maxPeak = Math.max(...peaks, 0.01);
+                    const normalized = peaks.map(p => p / maxPeak);
+                    audioCtx.close();
+
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = 120 * dpr;
+                    canvas.height = 24 * dpr;
+                    ctx.scale(dpr, dpr);
+                    ctx.clearRect(0, 0, 120, 24);
+                    const barW = 120 / normalized.length;
+                    normalized.forEach((h, i) => {
+                        const barH = Math.max(h * 20, 1);
+                        ctx.fillStyle = 'rgba(74, 222, 128, 0.6)';
+                        ctx.fillRect(i * barW + 0.5, (24 - barH) / 2, barW - 1, barH);
+                    });
+                    setLoaded(true);
+                } catch { /* skip */ }
+            };
+            load();
+            return () => { cancelled = true; };
+        }, [url, isCorrupted]);
+
+        if (isCorrupted) {
+            return <span className="text-[10px] text-red-500 font-mono">CORROMPIDO</span>;
+        }
+        return <canvas ref={canvasRef} style={{ width: 120, height: 24 }} className="opacity-70" />;
     };
 
     const handleEditKitSubmit = async (e: React.FormEvent) => {
@@ -1223,23 +1315,40 @@ const handleDeleteCoupon = async (id: string) => {
 
                             {editingKit.samples && editingKit.samples.length > 0 && (
                                 <div>
-                                    <label className="block text-xs font-bold text-green-600 mb-2 font-mono uppercase tracking-widest">
-                                        SAMPLES ({editingKit.samples.length})
-                                    </label>
-                                    <div className="max-h-48 overflow-y-auto space-y-1 border border-green-900/30 rounded-sm p-2 bg-black/40">
-                                        {editingKit.samples.map(sample => (
-                                            <div key={sample.id} className="flex items-center justify-between text-[10px] font-mono py-1 px-2 rounded-sm bg-green-900/10 hover:bg-green-900/20 transition-colors group">
-                                                <span className="text-green-600 truncate flex-1 mr-2">{sample.file_name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteSample(sample.id, sample.file_name)}
-                                                    className="text-green-800 hover:text-red-500 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0"
-                                                    title="Excluir sample"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        ))}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-xs font-bold text-green-600 font-mono uppercase tracking-widest">
+                                            SAMPLES ({editingKit.samples.length})
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={handleDetectCorrupted}
+                                            disabled={checkingSamples}
+                                            className="text-[10px] font-mono uppercase text-yellow-600 hover:text-yellow-400 transition-colors disabled:opacity-50"
+                                        >
+                                            {checkingSamples ? '⏳ Verificando...' : '🔍 Detectar Corrompidos'}
+                                        </button>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto space-y-1 border border-green-900/30 rounded-sm p-2 bg-black/40">
+                                        {editingKit.samples.map(sample => {
+                                            const isCorrupted = corruptedSamples.has(sample.id);
+                                            return (
+                                                <div key={sample.id} className={`flex items-center gap-2 text-sm font-mono py-1.5 px-2 rounded-sm transition-colors group ${isCorrupted ? 'bg-red-900/20 border border-red-500/30' : 'bg-green-900/10 hover:bg-green-900/20'}`}>
+                                                    <MiniWaveform url={sample.file_url} isCorrupted={isCorrupted} />
+                                                    <span className={`truncate flex-1 ${isCorrupted ? 'text-red-400 font-bold' : 'text-green-600'}`}>
+                                                        {sample.file_name}
+                                                    </span>
+                                                    {isCorrupted && <AlertTriangleIcon className="w-3 h-3 text-red-500 flex-shrink-0" />}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteSample(sample.id, sample.file_name)}
+                                                        className="text-green-800 hover:text-red-500 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0"
+                                                        title="Excluir sample"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
 
                                     <div className="mt-3">
