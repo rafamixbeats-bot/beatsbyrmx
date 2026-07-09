@@ -23,16 +23,6 @@ export const ShoppingCartComponent: React.FC<ShoppingCartProps> = ({ items, onRe
 
   return (
     <>
-      {!isOpen && (
-        <button 
-          onClick={toggleCart}
-          className="fixed right-4 md:right-8 bottom-28 z-40 bg-purple-900/90 hover:bg-purple-800 text-green-400 border border-purple-500/50 font-bold font-mono uppercase tracking-widest py-3 px-6 rounded-sm transition-all duration-300 shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] transform hover:scale-105 backdrop-blur-sm flex items-center gap-2 group"
-        >
-          <ShoppingCart className="w-5 h-5 group-hover:text-white transition-colors" />
-          <span>CART [{items.length}]</span>
-        </button>
-      )}
-
       <div className={`fixed top-0 right-0 w-full max-w-sm bg-black/95 backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-green-900/50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ bottom: '96px' }}>
         {/* Tech decorative line */}
         <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-green-500/0 via-green-500/50 to-green-500/0"></div>

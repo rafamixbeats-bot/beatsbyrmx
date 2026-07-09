@@ -512,7 +512,7 @@ const App = () => {
 
   return (
     <div className="bg-black text-slate-300 min-h-screen font-sans flex flex-col">
-      <Header onNavigate={handleNavigate} />
+      <Header onNavigate={handleNavigate} cartCount={cartItems.length} onToggleCart={() => setIsCartOpen(!isCartOpen)} />
       <main className="pt-24 pb-28 flex-grow">
         <Routes>
           <Route path="/beat/:slug" element={

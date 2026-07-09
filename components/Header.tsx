@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MenuIcon, CloseIcon } from './icons';
+import { MenuIcon, CloseIcon, ShoppingCart } from './icons';
 import { View } from '../App';
 
 const navLinks: { id: View, label: string }[] = [
@@ -11,9 +11,11 @@ const navLinks: { id: View, label: string }[] = [
 
 interface HeaderProps {
     onNavigate: (view: View) => void;
+    cartCount: number;
+    onToggleCart: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, cartCount, onToggleCart }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -21,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
           
-          {/* Desktop: Logo + Nav Links */}
+          {/* Desktop: Logo + Nav Links + Cart */}
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => onNavigate('store')} className="focus:outline-none group flex-shrink-0" aria-label="Página Inicial RMXBEATS">
               <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
@@ -35,18 +37,30 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 {link.label}
               </button>
             ))}
+            <button onClick={onToggleCart} className="text-green-400 hover:text-green-300 transition-colors relative hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-purple-600 text-white text-[9px] font-bold font-mono w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
+              )}
+            </button>
           </div>
 
-          {/* Mobile: Hamburger + Logo centrada */}
-          <div className="flex md:hidden items-center flex-1">
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-green-400 hover:text-green-300 p-2">
+          {/* Mobile: Hamburger + Logo centrada + Cart */}
+          <div className="flex md:hidden items-center w-full">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-green-400 hover:text-green-300 p-2 flex-shrink-0">
               {mobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
             </button>
             <div className="flex-1 flex justify-center">
               <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
-                <img src="/logo-rmx-transparent.png" alt="RMX" className="h-12 w-auto object-contain group-hover:opacity-80 transition-opacity" />
+                <img src="/logo-rmx-transparent.png" alt="RMX" className="h-14 w-auto object-contain group-hover:opacity-80 transition-opacity" />
               </button>
             </div>
+            <button onClick={onToggleCart} className="text-green-400 hover:text-green-300 p-2 flex-shrink-0 relative">
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-0.5 bg-purple-600 text-white text-[9px] font-bold font-mono w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
+              )}
+            </button>
           </div>
         </div>
 
