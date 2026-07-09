@@ -21,11 +21,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
         <div className="flex items-center justify-between h-24">
           
           <div className="flex items-center gap-10">
-            {/* Logo Tech Style - RMX in Red */}
+            {/* Logo Image */}
             <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
-              <span className="text-2xl font-bold font-mono tracking-[0.2em] text-red-500 group-hover:text-red-400 transition-colors drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]">
-                RMX<span className="text-green-500 text-sm align-top opacity-80 drop-shadow-none">_X</span>
-              </span>
+              <img src="/logo-rmx.png" alt="RMX" className="h-14 w-auto object-contain group-hover:opacity-80 transition-opacity" />
             </button>
 
             {/* Nav Links Tech Style */}
