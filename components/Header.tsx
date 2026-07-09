@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
           <div className="flex items-center gap-10">
             {/* Logo Image */}
             <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
-              <img src="/logo-rmx-transparent.png" alt="RMX" className="h-18 w-auto object-contain group-hover:opacity-80 transition-opacity" />
+              <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
             </button>
 
             {/* Nav Links Tech Style */}
