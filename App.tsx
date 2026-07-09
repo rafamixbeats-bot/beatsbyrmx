@@ -353,7 +353,6 @@ const App = () => {
   const handleAddToCart = (item: Beat | DrumKit, license?: LicenseOption) => {
     const itemId = license ? `beat-${item.id}-${license.type}` : `drum_kit-${item.id}`;
     if (cartItems.some(ci => ci.id === itemId)) {
-      addToast('Este item já está no seu carrinho.', 'info');
       return;
     }
     let newItem: CartItem;
@@ -363,7 +362,6 @@ const App = () => {
       newItem = { id: itemId, productId: item.id, type: 'drum_kit', title: item.title, price: (item as DrumKit).price, description: 'Drum Kit' };
     }
     setCartItems(prev => [...prev, newItem]);
-    addToast(`${item.title} adicionado ao carrinho!`, 'success');
     setLicenseModalInfo(null);
     setIsCartOpen(true);
   };
@@ -379,16 +377,12 @@ const App = () => {
       }
     });
     if (addedCount > 0) {
-      addToast(`${addedCount} ${addedCount === 1 ? 'pack adicionado' : 'packs adicionados'} ao carrinho!`, 'success');
       setIsCartOpen(true);
-    } else {
-      addToast('Todos os packs selecionados já estão no carrinho.', 'info');
     }
   };
 
   const handleRemoveFromCart = (itemId: string) => {
     setCartItems(prev => prev.filter(item => item.id !== itemId));
-    addToast('Item removido do carrinho.', 'success');
   };
 
   const handleCheckout = () => {
