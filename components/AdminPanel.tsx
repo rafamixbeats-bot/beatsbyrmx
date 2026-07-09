@@ -288,41 +288,60 @@ useEffect(() => {
             addToast('Este kit não tem samples.', 'error');
             return;
         }
-        if (!confirm(`Corrigir content-type de ${kit.samples.length} samples de "${kit.title}"?`)) return;
+        if (!confirm(`Verificar content-type de ${kit.samples.length} samples de "${kit.title}"?`)) return;
 
         setFixingKitId(kit.id);
-        const updatedSamples: DrumKitSample[] = [];
 
         try {
-            for (const sample of kit.samples) {
-                addToast(`Corrigindo ${sample.file_name}...`, 'info');
+            const res = await fetch('/api/fix-r2-mime', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    samples: kit.samples.map(s => ({ fileUrl: s.file_url, fileName: s.file_name })),
+                }),
+            });
 
-                const res = await fetch('/api/fix-r2-mime', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fileUrl: sample.file_url,
-                        fileName: sample.file_name,
-                    }),
-                });
-
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || `Falha ao corrigir ${sample.file_name}`);
-                }
-
-                const { newUrl } = await res.json();
-
-                await supabase
-                    .from('drum_kit_samples')
-                    .update({ file_url: newUrl })
-                    .eq('id', sample.id);
-
-                updatedSamples.push({ ...sample, file_url: newUrl });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Falha ao processar');
             }
 
-            onUpdateDrumKit(kit.id, { samples: updatedSamples });
-            addToast(`Corrigido! ${updatedSamples.length} samples re-uploadados com content-type correto.`, 'success');
+            const { results } = await res.json();
+
+            const fixed = results.filter((r: any) => r.status === 'fixed');
+            const skipped = results.filter((r: any) => r.status === 'skipped');
+            const errors = results.filter((r: any) => r.status === 'error');
+
+            if (fixed.length > 0) {
+                const updatedSamples = kit.samples.map(s => {
+                    const fix = fixed.find((f: any) => f.fileName === s.file_name);
+                    return fix ? { ...s, file_url: fix.newUrl } : s;
+                });
+
+                for (const sample of updatedSamples) {
+                    const fix = fixed.find((f: any) => f.fileName === sample.file_name);
+                    if (fix) {
+                        const { error } = await supabase
+                            .from('drum_kit_samples')
+                            .update({ file_url: sample.file_url })
+                            .eq('id', sample.id);
+                        if (error) throw new Error(`Erro ao atualizar ${sample.file_name}: ${error.message}`);
+                    }
+                }
+
+                onUpdateDrumKit(kit.id, { samples: updatedSamples });
+            }
+
+            const msgs = [];
+            if (fixed.length > 0) msgs.push(`${fixed.length} corrigido(s)`);
+            if (skipped.length > 0) msgs.push(`${skipped.length} já correto(s)`);
+            if (errors.length > 0) msgs.push(`${errors.length} erro(s)`);
+
+            if (errors.length > 0) {
+                addToast(`${msgs.join(' | ')}. Erros: ${errors.map((e: any) => e.fileName).join(', ')}`, 'error');
+            } else {
+                addToast(`${msgs.join(' | ')}`, 'success');
+            }
         } catch (error: any) {
             console.error('Erro ao corrigir MIME:', error);
             addToast(`Erro: ${error.message}`, 'error');
