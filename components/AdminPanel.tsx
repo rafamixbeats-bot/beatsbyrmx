@@ -544,7 +544,6 @@ useEffect(() => {
 
     const handleDeleteSample = async (sampleId: string, fileName: string) => {
         if (!editingKit) return;
-        if (!confirm(`Excluir sample "${fileName}"?`)) return;
 
         try {
             const { error } = await supabase
