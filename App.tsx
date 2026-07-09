@@ -457,10 +457,13 @@ const App = () => {
   };
 
   const handleUpdateDrumKit = async (kitId: string, data: Partial<DrumKit>) => {
-    const { error } = await supabase.from('drum_kits').update(data).eq('id', kitId);
-    if (error) { addToast('Erro ao atualizar kit!', 'error'); return; }
+    const { samples, ...dbData } = data;
+    if (Object.keys(dbData).length > 0) {
+      const { error } = await supabase.from('drum_kits').update(dbData).eq('id', kitId);
+      if (error) { addToast('Erro ao atualizar kit!', 'error'); return; }
+    }
     setDrumKits(prev => prev.map(k => k.id === kitId ? { ...k, ...data } : k));
-    addToast('Sound Kit atualizado!', 'success');
+    if (Object.keys(dbData).length > 0) addToast('Sound Kit atualizado!', 'success');
   };
 
   const handleUpdateSocials = async (newLinks: SocialLinks) => {
