@@ -20,27 +20,28 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
           
-          <div className="flex items-center gap-10">
-            {/* Logo Image */}
+          {/* Logo - Esquerda */}
+          <div className="flex-shrink-0">
             <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
               <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
             </button>
-
-            {/* Nav Links Tech Style */}
-            <div className="hidden md:flex items-baseline space-x-8">
-              {navLinks.map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() => onNavigate(link.id)}
-                  className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          {/* Nav Links - Centro */}
+          <div className="hidden md:flex items-center justify-center flex-1 space-x-10">
+            {navLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => onNavigate(link.id)}
+                className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search - Direita */}
+          <div className="flex-shrink-0 flex items-center gap-6">
              {/* Search Bar Lab Style (Mini Version) */}
              <div className="relative group hidden sm:block w-64">
                 {/* Glow Effect */}
