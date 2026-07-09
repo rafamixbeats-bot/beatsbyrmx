@@ -85,9 +85,9 @@ const RealWaveform: React.FC<{
             const y = (h - barH) / 2;
 
             if (x < progressX && isPlaying) {
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = '#4ade80';
             } else {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                ctx.fillStyle = 'rgba(34, 197, 94, 0.35)';
             }
 
             ctx.fillRect(x + gap / 2, y, barWidth - gap, barH);
@@ -237,10 +237,10 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                             <span className="text-sm font-bold text-white truncate max-w-[200px]">{pack.title}</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <button onClick={() => scrollToSection('samples')} className="text-xs text-gray-400 hover:text-white transition-colors hidden md:block">
+                            <button onClick={() => scrollToSection('samples')} className="text-xs text-green-700 hover:text-green-400 transition-colors hidden md:block">
                                 SAMPLES
                             </button>
-                            <button onClick={() => onAddToCart(pack)} className="bg-white hover:bg-gray-200 text-black font-bold font-mono text-xs uppercase tracking-widest py-2 px-4 rounded-sm transition-all flex items-center gap-2">
+                            <button onClick={() => onAddToCart(pack)} className="bg-green-500 hover:bg-green-400 text-black font-bold font-mono text-xs uppercase tracking-widest py-2 px-4 rounded-sm transition-all flex items-center gap-2">
                                 <ShoppingCart className="w-4 h-4" /> COMPRAR
                             </button>
                         </div>
@@ -249,7 +249,7 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
             )}
 
             <div className="container mx-auto px-4 pt-8 pb-20">
-                <button onClick={() => navigate('/drum_kits')} className="flex items-center gap-2 text-gray-500 hover:text-white mb-6 text-xs uppercase tracking-widest transition-colors">
+                <button onClick={() => navigate('/drum_kits')} className="flex items-center gap-2 text-green-800 hover:text-green-400 mb-6 text-xs uppercase tracking-widest transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Voltar
                 </button>
 
@@ -259,14 +259,14 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                     </div>
 
                     <div className="flex flex-col justify-center">
-                        <span className="text-xs text-gray-500 uppercase tracking-widest mb-3">SOUND KIT</span>
-                        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 uppercase tracking-wider">{pack.title}</h1>
-                        <p className="text-sm text-gray-400 mb-6 max-w-lg">{pack.description || 'Sem descricao.'}</p>
+                        <span className="text-xs text-green-700 uppercase tracking-widest mb-3">SOUND KIT</span>
+                        <h1 className="text-4xl md:text-5xl font-bold text-green-400 mb-3 uppercase tracking-wider drop-shadow-[0_0_5px_rgba(74,222,128,0.3)]">{pack.title}</h1>
+                        <p className="text-sm text-green-700/80 mb-6 max-w-lg">{pack.description || 'Sem descricao.'}</p>
 
                         {pack.tags && pack.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {pack.tags.map(tag => (
-                                    <span key={tag} className="text-[10px] text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                                    <span key={tag} className="text-[10px] text-green-700 bg-green-900/20 border border-green-900/30 px-2 py-0.5 rounded-sm uppercase tracking-wider">
                                         {tag}
                                     </span>
                                 ))}
@@ -276,23 +276,23 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                         <div className="flex items-center gap-8 mb-8">
                             <div>
                                 <span className="text-3xl font-bold text-white">{pack.samples.length}</span>
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Samples</p>
+                                <p className="text-[10px] text-green-800 uppercase tracking-widest mt-1">Samples</p>
                             </div>
-                            <div className="h-8 w-px bg-white/10"></div>
+                            <div className="h-8 w-px bg-green-900/30"></div>
                             <div>
                                 <div className="flex items-center gap-2">
                                     {pack.price > 0 && (
-                                        <span className="text-lg font-bold text-gray-600 line-through">R$ {(pack.price * 1.5).toFixed(2)}</span>
+                                        <span className="text-lg font-bold text-green-900 line-through">R$ {(pack.price * 1.5).toFixed(2)}</span>
                                     )}
-                                    <span className="text-3xl font-bold text-white">
+                                    <span className="text-3xl font-bold text-green-400">
                                         {pack.price === 0 ? 'FREE' : `R$ ${pack.price.toFixed(2)}`}
                                     </span>
                                 </div>
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Preço</p>
+                                <p className="text-[10px] text-green-800 uppercase tracking-widest mt-1">Preço</p>
                             </div>
                         </div>
 
-                        <button onClick={() => onAddToCart(pack)} className="bg-white hover:bg-gray-200 text-black font-bold font-mono text-sm uppercase tracking-widest py-3 px-8 rounded-sm transition-all flex items-center justify-center gap-2 w-fit active:scale-95">
+                        <button onClick={() => onAddToCart(pack)} className="bg-green-500 hover:bg-green-400 text-black font-bold font-mono text-sm uppercase tracking-widest py-3 px-8 rounded-sm transition-all flex items-center justify-center gap-2 w-fit active:scale-95 shadow-[0_0_15px_rgba(74,222,128,0.3)]">
                             <ShoppingCart className="w-4 h-4" /> ADICIONAR AO CARRINHO
                         </button>
                     </div>
@@ -306,8 +306,8 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                                 onClick={() => setActiveTab(cat)}
                                 className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
                                     activeTab === cat
-                                        ? 'bg-white text-black'
-                                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+                                        ? 'bg-green-500 text-black'
+                                        : 'bg-green-900/20 text-green-700 hover:bg-green-900/40 hover:text-green-400 border border-green-900/30'
                                 }`}
                             >
                                 {cat}
@@ -324,11 +324,11 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                             onClick={() => handlePlaySample(sample)}
                         >
                             <div className="flex items-center gap-3 mb-2">
-                                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-white/20 group-hover:border-white/50 transition-colors flex-shrink-0">
+                                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-green-900/50 group-hover:border-green-500/50 transition-colors flex-shrink-0">
                                     {playingId === sample.id ? (
-                                        <Pause className="w-3 h-3 text-white" />
+                                        <Pause className="w-3 h-3 text-green-400" />
                                     ) : (
-                                        <Play className="w-3 h-3 text-white ml-0.5" />
+                                        <Play className="w-3 h-3 text-green-700 group-hover:text-green-400 ml-0.5" />
                                     )}
                                 </button>
                                 <div className="flex-grow">
@@ -340,7 +340,7 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                                 </div>
                             </div>
                             <p className={`text-center text-xs tracking-wide ${
-                                playingId === sample.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'
+                                playingId === sample.id ? 'text-green-400' : 'text-green-700 group-hover:text-green-500'
                             }`}>
                                 {getSampleDisplayName(sample)}
                             </p>
