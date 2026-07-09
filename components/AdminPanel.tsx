@@ -622,15 +622,23 @@ useEffect(() => {
 
         const checkPromises = editingKit.samples.map(async (sample) => {
             try {
-                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                const res = await fetch(sample.file_url);
+                const res = await fetch(sample.file_url, { method: 'HEAD' });
                 if (!res.ok) { corrupted.add(sample.id); return; }
-                const buf = await res.arrayBuffer();
-                if (buf.byteLength < 1024) { corrupted.add(sample.id); return; }
-                await audioCtx.decodeAudioData(buf);
-                audioCtx.close();
+                const contentLength = parseInt(res.headers.get('content-length') || '0', 10);
+                if (contentLength > 0 && contentLength < 1024) { corrupted.add(sample.id); return; }
+                const contentType = res.headers.get('content-type') || '';
+                if (contentType && !contentType.startsWith('audio/') && !contentType.startsWith('application/octet-stream')) {
+                    corrupted.add(sample.id);
+                }
             } catch {
-                corrupted.add(sample.id);
+                try {
+                    const res = await fetch(sample.file_url);
+                    if (!res.ok) { corrupted.add(sample.id); return; }
+                    const blob = await res.blob();
+                    if (blob.size < 1024) { corrupted.add(sample.id); }
+                } catch {
+                    corrupted.add(sample.id);
+                }
             }
         });
 
@@ -639,7 +647,7 @@ useEffect(() => {
         setCheckingSamples(false);
 
         if (corrupted.size > 0) {
-            addToast(`${corrupted.size} sample(s) corrompidos detectados!`, 'error');
+            addToast(`${corrupted.size} sample(s) com problema detectados!`, 'error');
         } else {
             addToast('Todos os samples estão OK!', 'success');
         }
