@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DrumKit, DrumKitSample } from '../App';
 import { Package, ShoppingCart, Play, Pause, ArrowLeft } from './icons';
@@ -9,19 +9,52 @@ interface PackDetailPageProps {
     onAddToCart: (kit: DrumKit) => void;
 }
 
-const WaveformBars: React.FC<{
+const RealWaveform: React.FC<{
+    url: string;
     isPlaying: boolean;
     progress: number;
     onClick?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
-}> = ({ isPlaying, progress, onClick }) => {
+}> = ({ url, isPlaying, progress, onClick }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const barsRef = useRef<number[]>([]);
+    const peaksRef = useRef<number[]>([]);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        if (barsRef.current.length === 0) {
-            barsRef.current = Array.from({ length: 60 }, () => 0.2 + Math.random() * 0.8);
-        }
-    }, []);
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return;
+                const arrayBuffer = await res.arrayBuffer();
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                if (cancelled) return;
+
+                const rawData = audioBuffer.getChannelData(0);
+                const samples = 80;
+                const blockSize = Math.floor(rawData.length / samples);
+                const peaks: number[] = [];
+                for (let i = 0; i < samples; i++) {
+                    let sum = 0;
+                    const start = i * blockSize;
+                    for (let j = start; j < start + blockSize && j < rawData.length; j++) {
+                        sum += Math.abs(rawData[j]);
+                    }
+                    peaks.push(sum / blockSize);
+                }
+                const maxPeak = Math.max(...peaks, 0.01);
+                peaksRef.current = peaks.map(p => p / maxPeak);
+                setLoaded(true);
+                audioCtx.close();
+            } catch (e) {
+                const fallback = Array.from({ length: 80 }, () => 0.2 + Math.random() * 0.8);
+                peaksRef.current = fallback;
+                setLoaded(true);
+            }
+        };
+        load();
+        return () => { cancelled = true; };
+    }, [url]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -37,33 +70,35 @@ const WaveformBars: React.FC<{
 
         const w = rect.width;
         const h = rect.height;
-        const bars = barsRef.current;
-        const barWidth = w / bars.length;
-        const gap = 1.5;
+        const peaks = peaksRef.current;
+        if (peaks.length === 0) return;
+
+        const barWidth = w / peaks.length;
+        const gap = 1;
         const progressX = (progress / 100) * w;
 
         ctx.clearRect(0, 0, w, h);
 
-        bars.forEach((heightRatio, i) => {
-            const barH = heightRatio * (h * 0.9);
+        peaks.forEach((heightRatio, i) => {
+            const barH = Math.max(heightRatio * (h * 0.9), 2);
             const x = i * barWidth;
             const y = (h - barH) / 2;
 
             if (x < progressX && isPlaying) {
                 ctx.fillStyle = '#ffffff';
             } else {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
             }
 
             ctx.fillRect(x + gap / 2, y, barWidth - gap, barH);
         });
-    }, [progress, isPlaying]);
+    }, [progress, isPlaying, loaded]);
 
     return (
         <canvas
             ref={canvasRef}
             onClick={onClick}
-            className="w-full cursor-pointer"
+            className="w-full h-full cursor-pointer"
             style={{ height: '40px' }}
         />
     );
@@ -297,7 +332,8 @@ const PackDetailPage: React.FC<PackDetailPageProps> = ({ drumKits, onAddToCart }
                                     )}
                                 </button>
                                 <div className="flex-grow">
-                                    <WaveformBars
+                                    <RealWaveform
+                                        url={sample.file_url}
                                         isPlaying={playingId === sample.id}
                                         progress={playingId === sample.id ? progress : 0}
                                     />
