@@ -645,12 +645,15 @@ useEffect(() => {
         }
     };
 
+    const waveformCache = useRef<Map<string, number[]>>(new Map());
+
     const MiniWaveform: React.FC<{ url: string; isCorrupted: boolean }> = ({ url, isCorrupted }) => {
         const canvasRef = useRef<HTMLCanvasElement>(null);
-        const [loaded, setLoaded] = useState(false);
+        const [peaks, setPeaks] = useState<number[] | null>(waveformCache.current.get(url) || null);
 
         useEffect(() => {
             if (isCorrupted) return;
+            if (peaks) return;
             let cancelled = false;
             const load = async () => {
                 try {
@@ -663,40 +666,44 @@ useEffect(() => {
                     const rawData = audioBuffer.getChannelData(0);
                     const samples = 40;
                     const blockSize = Math.floor(rawData.length / samples);
-                    const peaks: number[] = [];
+                    const p: number[] = [];
                     for (let i = 0; i < samples; i++) {
                         let sum = 0;
                         const start = i * blockSize;
                         for (let j = start; j < start + blockSize && j < rawData.length; j++) {
                             sum += Math.abs(rawData[j]);
                         }
-                        peaks.push(sum / blockSize);
+                        p.push(sum / blockSize);
                     }
-                    const maxPeak = Math.max(...peaks, 0.01);
-                    const normalized = peaks.map(p => p / maxPeak);
+                    const maxPeak = Math.max(...p, 0.01);
+                    const normalized = p.map(val => val / maxPeak);
                     audioCtx.close();
-
-                    const canvas = canvasRef.current;
-                    if (!canvas) return;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return;
-                    const dpr = window.devicePixelRatio || 1;
-                    canvas.width = 120 * dpr;
-                    canvas.height = 24 * dpr;
-                    ctx.scale(dpr, dpr);
-                    ctx.clearRect(0, 0, 120, 24);
-                    const barW = 120 / normalized.length;
-                    normalized.forEach((h, i) => {
-                        const barH = Math.max(h * 20, 1);
-                        ctx.fillStyle = 'rgba(74, 222, 128, 0.6)';
-                        ctx.fillRect(i * barW + 0.5, (24 - barH) / 2, barW - 1, barH);
-                    });
-                    setLoaded(true);
+                    waveformCache.current.set(url, normalized);
+                    if (!cancelled) setPeaks(normalized);
                 } catch { /* skip */ }
             };
             load();
             return () => { cancelled = true; };
         }, [url, isCorrupted]);
+
+        useEffect(() => {
+            if (!peaks || isCorrupted) return;
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = 120 * dpr;
+            canvas.height = 24 * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, 120, 24);
+            const barW = 120 / peaks.length;
+            peaks.forEach((h, i) => {
+                const barH = Math.max(h * 20, 1);
+                ctx.fillStyle = 'rgba(74, 222, 128, 0.6)';
+                ctx.fillRect(i * barW + 0.5, (24 - barH) / 2, barW - 1, barH);
+            });
+        }, [peaks, isCorrupted]);
 
         if (isCorrupted) {
             return <span className="text-[10px] text-red-500 font-mono">CORROMPIDO</span>;
