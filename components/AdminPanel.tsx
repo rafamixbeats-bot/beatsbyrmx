@@ -243,22 +243,33 @@ useEffect(() => {
 }, [editingKit]);
 
     // Upload para Cloudflare R2 via presigned POST
+    const VALID_AUDIO_MIME: Record<string, string> = {
+        wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff',
+        ogg: 'audio/ogg', flac: 'audio/flac', m4a: 'audio/mp4', aac: 'audio/aac',
+    };
+
+    const validateAudioFile = (file: File): string => {
+        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+        const contentType = VALID_AUDIO_MIME[ext];
+        if (!contentType) throw new Error(`Formato não suportado: .${ext} (use WAV, MP3, AIF, AIFF)`);
+        return contentType;
+    };
+
     const uploadFile = async (file: File | null, statusSetter: (status: SubmissionStatus) => void, messageSetter: (message: string) => void): Promise<string | null> => {
         if (!file) return null;
         try {
+            const contentType = validateAudioFile(file);
             statusSetter('uploading');
             messageSetter(`Enviando ${file.name} para R2...`);
 
-            const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type || 'application/octet-stream')}`);
+            const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
             if (!res.ok) throw new Error('Falha ao obter URL de upload');
             const { uploadUrl, publicUrl } = await res.json();
 
             const uploadRes = await fetch(uploadUrl, {
                 method: 'PUT',
                 body: file,
-                headers: {
-                    'Content-Type': file.type || 'application/octet-stream',
-                },
+                headers: { 'Content-Type': contentType },
             });
 
             if (!uploadRes.ok) {
@@ -445,9 +456,7 @@ useEffect(() => {
 
             const sampleUrls = await Promise.all(
                 kitSampleFiles.map(async (file) => {
-                    const ext = file.name.split('.').pop()?.toLowerCase() || 'wav';
-                    const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
-                    const contentType = mimeMap[ext] || file.type || 'audio/wav';
+                    const contentType = validateAudioFile(file);
                     const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
                     if (!res.ok) throw new Error('Falha ao obter URL de upload');
                     const { uploadUrl, publicUrl } = await res.json();
@@ -565,13 +574,11 @@ useEffect(() => {
     const handleEditKitUploadSamples = async () => {
         if (!editingKit || editKitNewFiles.length === 0) return;
         setEditKitUploading(true);
-        const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
         const newSamples: DrumKitSample[] = [];
 
         try {
             for (const file of editKitNewFiles) {
-                const ext = file.name.split('.').pop()?.toLowerCase() || 'wav';
-                const contentType = mimeMap[ext] || file.type || 'audio/wav';
+                const contentType = validateAudioFile(file);
 
                 const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
                 if (!res.ok) throw new Error('Falha ao obter URL de upload');
