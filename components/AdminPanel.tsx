@@ -282,13 +282,17 @@ useEffect(() => {
     };
 
     const [fixingKitId, setFixingKitId] = useState<string | null>(null);
+    const [forceFix, setForceFix] = useState(false);
 
-    const handleFixMimeTypes = async (kit: DrumKit) => {
+    const handleFixMimeTypes = async (kit: DrumKit, force = false) => {
         if (!kit.samples || kit.samples.length === 0) {
             addToast('Este kit não tem samples.', 'error');
             return;
         }
-        if (!confirm(`Verificar content-type de ${kit.samples.length} samples de "${kit.title}"?`)) return;
+        const msg = force
+            ? `Forçar re-upload de TODOS os ${kit.samples.length} samples de "${kit.title}"?`
+            : `Verificar content-type de ${kit.samples.length} samples de "${kit.title}"?`;
+        if (!confirm(msg)) return;
 
         setFixingKitId(kit.id);
 
@@ -298,6 +302,7 @@ useEffect(() => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     samples: kit.samples.map(s => ({ fileUrl: s.file_url, fileName: s.file_name })),
+                    force,
                 }),
             });
 
@@ -799,6 +804,9 @@ const handleDeleteCoupon = async (id: string) => {
                                                 <div className="flex items-center gap-1">
                                                     <button onClick={() => handleFixMimeTypes(kit)} title="CORRIGIR MIME TYPES" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-yellow-400 hover:border-yellow-500/30'}`}>
                                                         <span className="text-xs font-mono">{fixingKitId === kit.id ? '⏳' : '🔧'}</span>
+                                                    </button>
+                                                    <button onClick={() => handleFixMimeTypes(kit, true)} title="FORÇAR RE-UPLOAD TODOS" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-red-400 hover:border-red-500/30'}`}>
+                                                        <span className="text-xs font-mono">🔄</span>
                                                     </button>
                                                     <button onClick={() => setEditingKit(kit)} title="EDITAR" className="text-green-700 hover:text-green-400 p-2 border border-transparent hover:border-green-500/30 rounded-sm transition-all">
                                                         <EditIcon className="w-4 h-4"/>

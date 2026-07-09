@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   const mimeMap = { '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.aif': 'audio/aif', '.aiff': 'audio/aiff' };
 
   try {
-    const { samples } = req.body;
+    const { samples, force } = req.body;
     if (!samples || !Array.isArray(samples) || samples.length === 0) {
       return res.status(400).json({ error: 'samples array required' });
     }
@@ -50,9 +50,15 @@ export default async function handler(req, res) {
         const headCmd = new HeadObjectCommand({ Bucket: R2_BUCKET, Key: key });
         const headResponse = await s3.send(headCmd);
         const currentContentType = headResponse.ContentType || '';
+        const contentLength = headResponse.ContentLength || 0;
 
-        if (currentContentType === expectedContentType) {
-          results.push({ fileName, status: 'skipped', reason: 'already correct', currentContentType });
+        if (!force && currentContentType === expectedContentType && contentLength > 1024) {
+          results.push({ fileName, status: 'skipped', reason: `ok (${contentLength} bytes, ${currentContentType})` });
+          continue;
+        }
+
+        if (contentLength <= 1024) {
+          results.push({ fileName, status: 'error', reason: ` arquivo muito pequeno (${contentLength} bytes)` });
           continue;
         }
       } catch (headError) {
@@ -64,6 +70,11 @@ export default async function handler(req, res) {
         const getCmd = new GetObjectCommand({ Bucket: R2_BUCKET, Key: key });
         const getResponse = await s3.send(getCmd);
         const fileBuffer = Buffer.from(await getResponse.Body.transformToByteArray());
+
+        if (fileBuffer.length <= 1024) {
+          results.push({ fileName, status: 'error', reason: ` arquivo corrompido (${fileBuffer.length} bytes)` });
+          continue;
+        }
 
         const cleanFileName = fileName.replace(/\s+/g, '-').toLowerCase();
         const newKey = `${Date.now()}-${cleanFileName}`;
@@ -77,7 +88,7 @@ export default async function handler(req, res) {
         await s3.send(putCmd);
 
         const newPublicUrl = `${R2_PUBLIC_URL}/${newKey}`;
-        results.push({ fileName, status: 'fixed', oldContentType: 'wrong', newContentType: expectedContentType, newUrl: newPublicUrl });
+        results.push({ fileName, status: 'fixed', newContentType: expectedContentType, newUrl: newPublicUrl, size: fileBuffer.length });
       } catch (error) {
         results.push({ fileName, status: 'error', reason: error.message });
       }
