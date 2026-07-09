@@ -291,38 +291,34 @@ useEffect(() => {
         if (!confirm(`Corrigir content-type de ${kit.samples.length} samples de "${kit.title}"?`)) return;
 
         setFixingKitId(kit.id);
-        const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
         const updatedSamples: DrumKitSample[] = [];
 
         try {
             for (const sample of kit.samples) {
-                const ext = sample.file_name.split('.').pop()?.toLowerCase() || 'wav';
-                const contentType = mimeMap[ext] || 'audio/wav';
+                addToast(`Corrigindo ${sample.file_name}...`, 'info');
 
-                addToast(`Re-uploadando ${sample.file_name}...`, 'info');
-
-                const res = await fetch(sample.file_url);
-                if (!res.ok) throw new Error(`Falha ao baixar ${sample.file_name}`);
-                const blob = await res.blob();
-                const file = new File([blob], sample.file_name, { type: contentType });
-
-                const presignedRes = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(sample.file_name)}&contentType=${encodeURIComponent(contentType)}`);
-                if (!presignedRes.ok) throw new Error('Falha ao obter URL de upload');
-                const { uploadUrl, publicUrl } = await presignedRes.json();
-
-                const uploadRes = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    body: file,
-                    headers: { 'Content-Type': contentType },
+                const res = await fetch('/api/fix-r2-mime', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileUrl: sample.file_url,
+                        fileName: sample.file_name,
+                    }),
                 });
-                if (!uploadRes.ok) throw new Error(`Upload falhou: ${sample.file_name}`);
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || `Falha ao corrigir ${sample.file_name}`);
+                }
+
+                const { newUrl } = await res.json();
 
                 await supabase
                     .from('drum_kit_samples')
-                    .update({ file_url: publicUrl })
+                    .update({ file_url: newUrl })
                     .eq('id', sample.id);
 
-                updatedSamples.push({ ...sample, file_url: publicUrl });
+                updatedSamples.push({ ...sample, file_url: newUrl });
             }
 
             onUpdateDrumKit(kit.id, { samples: updatedSamples });
