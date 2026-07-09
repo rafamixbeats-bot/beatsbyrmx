@@ -35,20 +35,20 @@ const BeatRow: React.FC<{
                 </button>
 
                 {/* Info Grouped - Left Side */}
-                <div className="flex flex-col min-w-0 mr-4">
-                    <Link to={`/beat/${slugify(beat.title)}`} onClick={(e) => e.stopPropagation()} className="font-bold font-mono text-base truncate transition-colors text-green-400 tracking-widest uppercase drop-shadow-[0_0_2px_rgba(74,222,128,0.3)] group-hover:text-green-300 hover:text-green-300 hover:underline">
+                <div className="flex flex-col min-w-0 mr-2 sm:mr-4">
+                    <Link to={`/beat/${slugify(beat.title)}`} onClick={(e) => e.stopPropagation()} className="font-bold font-mono text-xs sm:text-base truncate transition-colors text-green-400 tracking-widest uppercase drop-shadow-[0_0_2px_rgba(74,222,128,0.3)] group-hover:text-green-300 hover:text-green-300 hover:underline">
                         {beat.title}
                     </Link>
                     
                     {/* Metadata with Tech/Lab Font */}
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 font-mono tracking-widest">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-slate-500 mt-1 font-mono tracking-widest">
                         <span className="font-bold text-green-800 uppercase">{beat.producer}</span>
-                        <span className="text-green-900/50">::</span>
-                        <span className="text-green-700 uppercase">{beat.bpm} BPM</span>
-                        <span className="text-green-900/50">::</span>
-                        <span className="text-green-700">{beat.key}</span>
-                        <span className="text-green-900/50">::</span>
-                        <span className="bg-[#1e0538] text-purple-300 px-1.5 py-0.5 rounded-sm border border-purple-900/50 uppercase">
+                        <span className="text-green-900/50 hidden sm:inline">::</span>
+                        <span className="text-green-700 uppercase hidden sm:inline">{beat.bpm} BPM</span>
+                        <span className="text-green-900/50 hidden sm:inline">::</span>
+                        <span className="text-green-700 hidden sm:inline">{beat.key}</span>
+                        <span className="text-green-900/50 hidden sm:inline">::</span>
+                        <span className="bg-[#1e0538] text-purple-300 px-1 sm:px-1.5 py-0.5 rounded-sm border border-purple-900/50 uppercase">
                             {beat.duration}
                         </span>
                     </div>
@@ -56,7 +56,7 @@ const BeatRow: React.FC<{
             </div>
 
             {/* Actions & Price - Right Side Fixed Alignment */}
-            <div className="flex items-center gap-4 flex-shrink-0 pl-4 border-l border-green-900/20">
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 pl-2 sm:pl-4 border-l border-green-900/20">
                 
                 {/* Free Download Button */}
                 <button
