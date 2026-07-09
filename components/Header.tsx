@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SearchIcon, MenuIcon, CloseIcon } from './icons';
+import { MenuIcon, CloseIcon } from './icons';
 import { View } from '../App';
 
 const navLinks: { id: View, label: string }[] = [
@@ -11,10 +11,9 @@ const navLinks: { id: View, label: string }[] = [
 
 interface HeaderProps {
     onNavigate: (view: View) => void;
-    onSearch: (term: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -47,43 +46,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
               <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
                 <img src="/logo-rmx-transparent.png" alt="RMX" className="h-12 w-auto object-contain group-hover:opacity-80 transition-opacity" />
               </button>
-            </div>
-          </div>
-
-          {/* Search - Direita (Desktop) */}
-          <div className="hidden md:flex items-center flex-shrink-0 w-64 justify-end">
-             <div className="relative group w-64">
-                <div className="absolute -inset-0.5 bg-green-500/20 rounded-sm blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
-                <div className="relative flex items-center bg-black/80 border border-green-500/30 rounded-sm py-1.5 px-3 backdrop-blur-sm transition-colors group-focus-within:border-green-500/60">
-                    <span className="text-green-500 mr-2 animate-pulse font-mono font-bold select-none text-xs">{'>'}</span>
-                    <input
-                        type="text"
-                        placeholder=""
-                        onChange={(e) => onSearch(e.target.value)}
-                        className="w-full bg-transparent border-none outline-none text-green-400 placeholder-green-800/60 font-mono text-xs tracking-widest uppercase focus:ring-0"
-                        autoComplete="off"
-                    />
-                    <SearchIcon className="w-3 h-3 text-green-600/80" />
-                </div>
-                <div className="absolute -bottom-px -left-px w-1.5 h-1.5 border-l border-b border-green-500/60"></div>
-                <div className="absolute -top-px -right-px w-1.5 h-1.5 border-r border-t border-green-500/60"></div>
-            </div>
-          </div>
-
-          {/* Mobile: Search direita */}
-          <div className="flex md:hidden items-center">
-            <div className="relative group w-40">
-                <div className="relative flex items-center bg-black/80 border border-green-500/30 rounded-sm py-1.5 px-2 backdrop-blur-sm">
-                    <span className="text-green-500 mr-1 font-mono font-bold select-none text-xs">{'>'}</span>
-                    <input
-                        type="text"
-                        placeholder=""
-                        onChange={(e) => onSearch(e.target.value)}
-                        className="w-full bg-transparent border-none outline-none text-green-400 placeholder-green-800/60 font-mono text-xs tracking-widest uppercase focus:ring-0"
-                        autoComplete="off"
-                    />
-                    <SearchIcon className="w-3 h-3 text-green-600/80" />
-                </div>
             </div>
           </div>
         </div>

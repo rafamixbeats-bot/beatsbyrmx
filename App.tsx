@@ -512,7 +512,7 @@ const App = () => {
 
   return (
     <div className="bg-black text-slate-300 min-h-screen font-sans flex flex-col">
-      <Header onNavigate={handleNavigate} onSearch={setSearchTerm} />
+      <Header onNavigate={handleNavigate} />
       <main className="pt-24 pb-28 flex-grow">
         <Routes>
           <Route path="/beat/:slug" element={
