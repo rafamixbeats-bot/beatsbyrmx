@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
                 <button
                   key={link.id}
                   onClick={() => onNavigate(link.id)}
-                  className="text-slate-400 hover:text-green-400 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
+                  className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]"
                 >
                   {link.label}
                 </button>

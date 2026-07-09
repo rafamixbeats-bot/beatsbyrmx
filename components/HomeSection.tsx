@@ -135,25 +135,6 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                      {/* Header de Mídia do Cubo */}
                      <div className="relative p-8 border-b border-green-900/30 bg-gradient-to-b from-green-900/5 to-transparent">
                         
-                        {/* --- BARRA DE PESQUISA --- */}
-                        <div className="mb-10 w-full max-w-2xl mx-auto">
-                            <div className="relative group/search">
-                                <div className="absolute -inset-0.5 bg-green-500/20 rounded-sm blur opacity-0 group-focus-within/search:opacity-100 transition duration-500"></div>
-                                <div className="relative flex items-center bg-black border border-green-800 rounded-sm p-3 backdrop-blur-sm transition-colors group-focus-within/search:border-green-400">
-                                    <span className="text-green-500 mr-3 animate-pulse font-mono font-bold select-none text-lg">{'>'}</span>
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => onSearch(e.target.value)}
-                                        placeholder=""
-                                        className="w-full bg-transparent border-none outline-none text-green-400 placeholder-green-800/60 font-mono text-sm tracking-widest uppercase focus:ring-0"
-                                        autoComplete="off"
-                                    />
-                                    <SearchIcon className="w-4 h-4 text-green-600/80" />
-                                </div>
-                            </div>
-                        </div>
-
                         {featuredBeat && (
                             <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left animate-fade-in px-4">
                                 
