@@ -188,6 +188,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [editingKit, setEditingKit] = useState<DrumKit | null>(null);
     const [editKitForm, setEditKitForm] = useState({ title: '', description: '', price: 0, tags: '' });
     const [isEditingKitSaving, setIsEditingKitSaving] = useState(false);
+    const [editKitNewFiles, setEditKitNewFiles] = useState<File[]>([]);
+    const [editKitUploading, setEditKitUploading] = useState(false);
 
     // Settings State
     const [links, setLinks] = useState<SocialLinks>(socialLinks);
@@ -556,6 +558,58 @@ useEffect(() => {
             addToast(`Sample "${fileName}" excluído.`, 'success');
         } catch (error: any) {
             addToast(`Erro ao excluir: ${error.message}`, 'error');
+        }
+    };
+
+    const handleEditKitUploadSamples = async () => {
+        if (!editingKit || editKitNewFiles.length === 0) return;
+        setEditKitUploading(true);
+        const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
+        const newSamples: DrumKitSample[] = [];
+
+        try {
+            for (const file of editKitNewFiles) {
+                const ext = file.name.split('.').pop()?.toLowerCase() || 'wav';
+                const contentType = mimeMap[ext] || file.type || 'audio/wav';
+
+                const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
+                if (!res.ok) throw new Error('Falha ao obter URL de upload');
+                const { uploadUrl, publicUrl } = await res.json();
+
+                const uploadRes = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    body: file,
+                    headers: { 'Content-Type': contentType },
+                });
+                if (!uploadRes.ok) throw new Error(`Upload falhou: ${file.name}`);
+
+                const { data: dbSample, error: dbError } = await supabase
+                    .from('drum_kit_samples')
+                    .insert({
+                        pack_id: editingKit.id,
+                        file_name: file.name,
+                        file_url: publicUrl,
+                        duration: '',
+                        key: '',
+                        bpm: 0,
+                        sort_order: editingKit.samples.length + newSamples.length,
+                    })
+                    .select()
+                    .single();
+
+                if (dbError) throw new Error(`Erro ao salvar no banco: ${dbError.message}`);
+                newSamples.push(dbSample);
+            }
+
+            const updatedSamples = [...editingKit.samples, ...newSamples];
+            setEditingKit({ ...editingKit, samples: updatedSamples });
+            onUpdateDrumKit(editingKit.id, { samples: updatedSamples });
+            setEditKitNewFiles([]);
+            addToast(`${newSamples.length} sample(s) adicionado(s)!`, 'success');
+        } catch (error: any) {
+            addToast(`Erro no upload: ${error.message}`, 'error');
+        } finally {
+            setEditKitUploading(false);
         }
     };
 
@@ -1186,6 +1240,33 @@ const handleDeleteCoupon = async (id: string) => {
                                                 </button>
                                             </div>
                                         ))}
+                                    </div>
+
+                                    <div className="mt-3">
+                                        <label className="cursor-pointer border border-dashed border-green-900/50 hover:border-green-500/50 rounded-sm p-3 flex items-center justify-center gap-2 text-center transition-all bg-black/40 hover:bg-green-900/5">
+                                            <UploadCloud className="w-4 h-4 text-green-700" />
+                                            <span className="text-[10px] text-green-700 font-mono uppercase">Adicionar samples (WAV/MP3)</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                multiple
+                                                accept="audio/*,.wav,.mp3,.aif,.aiff"
+                                                onChange={(e) => { if (e.target.files) setEditKitNewFiles(Array.from(e.target.files)); }}
+                                            />
+                                        </label>
+                                        {editKitNewFiles.length > 0 && (
+                                            <div className="mt-2 space-y-1">
+                                                <p className="text-[10px] text-green-600 font-mono">{editKitNewFiles.length} arquivo(s) selecionado(s)</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleEditKitUploadSamples}
+                                                    disabled={editKitUploading}
+                                                    className="bg-green-600 hover:bg-green-500 text-black font-bold font-mono text-[10px] uppercase tracking-widest py-1.5 px-4 rounded-sm transition-colors disabled:opacity-50"
+                                                >
+                                                    {editKitUploading ? 'ENVIANDO...' : `UPLOAD ${editKitNewFiles.length} ARQUIVO(S)`}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
