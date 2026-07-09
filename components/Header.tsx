@@ -4,7 +4,6 @@ import { MenuIcon, CloseIcon, ShoppingCart } from './icons';
 import { View } from '../App';
 
 const navLinks: { id: View, label: string }[] = [
-  { id: 'store', label: 'Explore' },
   { id: 'drum_kits', label: 'Sound Kits' },
   { id: 'pricing', label: 'Pricing' },
 ];
