@@ -281,6 +281,60 @@ useEffect(() => {
         onDeleteDrumKit(kit);
     };
 
+    const [fixingKitId, setFixingKitId] = useState<string | null>(null);
+
+    const handleFixMimeTypes = async (kit: DrumKit) => {
+        if (!kit.samples || kit.samples.length === 0) {
+            addToast('Este kit não tem samples.', 'error');
+            return;
+        }
+        if (!confirm(`Corrigir content-type de ${kit.samples.length} samples de "${kit.title}"?`)) return;
+
+        setFixingKitId(kit.id);
+        const mimeMap: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', aif: 'audio/aif', aiff: 'audio/aiff' };
+        const updatedSamples: DrumKitSample[] = [];
+
+        try {
+            for (const sample of kit.samples) {
+                const ext = sample.file_name.split('.').pop()?.toLowerCase() || 'wav';
+                const contentType = mimeMap[ext] || 'audio/wav';
+
+                addToast(`Re-uploadando ${sample.file_name}...`, 'info');
+
+                const res = await fetch(sample.file_url);
+                if (!res.ok) throw new Error(`Falha ao baixar ${sample.file_name}`);
+                const blob = await res.blob();
+                const file = new File([blob], sample.file_name, { type: contentType });
+
+                const presignedRes = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(sample.file_name)}&contentType=${encodeURIComponent(contentType)}`);
+                if (!presignedRes.ok) throw new Error('Falha ao obter URL de upload');
+                const { uploadUrl, publicUrl } = await presignedRes.json();
+
+                const uploadRes = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    body: file,
+                    headers: { 'Content-Type': contentType },
+                });
+                if (!uploadRes.ok) throw new Error(`Upload falhou: ${sample.file_name}`);
+
+                await supabase
+                    .from('drum_kit_samples')
+                    .update({ file_url: publicUrl })
+                    .eq('id', sample.id);
+
+                updatedSamples.push({ ...sample, file_url: publicUrl });
+            }
+
+            onUpdateDrumKit(kit.id, { samples: updatedSamples });
+            addToast(`Corrigido! ${updatedSamples.length} samples re-uploadados com content-type correto.`, 'success');
+        } catch (error: any) {
+            console.error('Erro ao corrigir MIME:', error);
+            addToast(`Erro: ${error.message}`, 'error');
+        } finally {
+            setFixingKitId(null);
+        }
+    };
+
     const handleAddBeatSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmissionStatus('idle');
@@ -728,6 +782,9 @@ const handleDeleteCoupon = async (id: string) => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
+                                                    <button onClick={() => handleFixMimeTypes(kit)} title="CORRIGIR MIME TYPES" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-yellow-400 hover:border-yellow-500/30'}`}>
+                                                        <span className="text-xs font-mono">{fixingKitId === kit.id ? '⏳' : '🔧'}</span>
+                                                    </button>
                                                     <button onClick={() => setEditingKit(kit)} title="EDITAR" className="text-green-700 hover:text-green-400 p-2 border border-transparent hover:border-green-500/30 rounded-sm transition-all">
                                                         <EditIcon className="w-4 h-4"/>
                                                     </button>
