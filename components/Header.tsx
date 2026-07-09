@@ -20,15 +20,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
           
-          {/* Logo - Esquerda */}
-          <div className="flex-shrink-0">
-            <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
+          {/* Espaçador esquerda */}
+          <div className="flex-shrink-0 w-64"></div>
+
+          {/* Logo + Nav Links - Centro */}
+          <div className="hidden md:flex items-center justify-center gap-8">
+            <button onClick={() => onNavigate('store')} className="focus:outline-none group flex-shrink-0" aria-label="Página Inicial RMXBEATS">
               <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
             </button>
-          </div>
-
-          {/* Nav Links - Centro */}
-          <div className="hidden md:flex items-center justify-center flex-1 space-x-10">
             {navLinks.map((link) => (
               <button
                 key={link.id}
@@ -41,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onSearch }) => {
           </div>
 
           {/* Search - Direita */}
-          <div className="flex-shrink-0 flex items-center gap-6">
+          <div className="flex-shrink-0 w-64 flex justify-end">
              {/* Search Bar Lab Style (Mini Version) */}
              <div className="relative group hidden sm:block w-64">
                 {/* Glow Effect */}
