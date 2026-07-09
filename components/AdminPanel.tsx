@@ -538,6 +538,27 @@ useEffect(() => {
         }
     };
 
+    const handleDeleteSample = async (sampleId: string, fileName: string) => {
+        if (!editingKit) return;
+        if (!confirm(`Excluir sample "${fileName}"?`)) return;
+
+        try {
+            const { error } = await supabase
+                .from('drum_kit_samples')
+                .delete()
+                .eq('id', sampleId);
+
+            if (error) throw new Error(error.message);
+
+            const updatedSamples = editingKit.samples.filter(s => s.id !== sampleId);
+            setEditingKit({ ...editingKit, samples: updatedSamples });
+            onUpdateDrumKit(editingKit.id, { samples: updatedSamples });
+            addToast(`Sample "${fileName}" excluído.`, 'success');
+        } catch (error: any) {
+            addToast(`Erro ao excluir: ${error.message}`, 'error');
+        }
+    };
+
     const handleEditKitSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingKit) return;
@@ -1145,6 +1166,30 @@ const handleDeleteCoupon = async (id: string) => {
                                 <InputField label="Tags (vírgula)" type="text" value={editKitForm.tags} onChange={(e) => setEditKitForm(p => ({ ...p, tags: e.target.value }))} placeholder="drill, trap, melody" />
                             </div>
                             <InputField label="Descrição" as="textarea" rows={3} value={editKitForm.description} onChange={(e) => setEditKitForm(p => ({ ...p, description: e.target.value }))} />
+
+                            {editingKit.samples && editingKit.samples.length > 0 && (
+                                <div>
+                                    <label className="block text-xs font-bold text-green-600 mb-2 font-mono uppercase tracking-widest">
+                                        SAMPLES ({editingKit.samples.length})
+                                    </label>
+                                    <div className="max-h-48 overflow-y-auto space-y-1 border border-green-900/30 rounded-sm p-2 bg-black/40">
+                                        {editingKit.samples.map(sample => (
+                                            <div key={sample.id} className="flex items-center justify-between text-[10px] font-mono py-1 px-2 rounded-sm bg-green-900/10 hover:bg-green-900/20 transition-colors group">
+                                                <span className="text-green-600 truncate flex-1 mr-2">{sample.file_name}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteSample(sample.id, sample.file_name)}
+                                                    className="text-green-800 hover:text-red-500 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0"
+                                                    title="Excluir sample"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="flex justify-end gap-4 pt-4 border-t border-green-900/30">
                                 <button type="button" onClick={() => setEditingKit(null)} className="bg-transparent hover:bg-green-900/20 border border-green-900 text-green-600 font-mono font-bold py-2 px-4 rounded-sm transition-colors uppercase text-xs">Cancelar</button>
                                 <button type="submit" disabled={isEditingKitSaving} className="bg-green-600 hover:bg-green-500 text-black font-bold font-mono uppercase tracking-widest py-2 px-6 rounded-sm transition-colors disabled:opacity-50">
