@@ -137,7 +137,7 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-sm mb-4 border border-green-500/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
                     <Users className="w-8 h-8 text-green-400" />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold text-green-400 uppercase font-mono tracking-[0.2em] drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">PRODUCERS_UNIT</h1>
+                <h1 className="text-4xl md:text-5xl font-bold text-green-400 uppercase font-mono tracking-[0.2em] drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">PRODUCER</h1>
                 <p className="mt-4 text-sm text-green-800 max-w-2xl mx-auto font-mono uppercase tracking-widest">
                     CORE SYSTEM OPERATORS.
                 </p>
