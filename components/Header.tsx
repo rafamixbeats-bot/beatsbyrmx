@@ -5,7 +5,7 @@ import { View } from '../App';
 
 const navLinks: { id: View, label: string }[] = [
   { id: 'drum_kits', label: 'Sound Kits' },
-  { id: 'producers', label: 'Producers' },
+  { id: 'producers', label: 'Producer' },
   { id: 'pricing', label: 'Pricing' },
 ];
 
