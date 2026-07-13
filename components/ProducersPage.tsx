@@ -24,7 +24,6 @@ interface ProducerCardProps {
 const ProducerCard: React.FC<ProducerCardProps> = ({ producer, beatCount, onViewBeats }) => {
     return (
         <Card className="p-6 flex flex-col items-center text-center transition-all duration-300 bg-black border border-green-900/40 rounded-sm hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] group relative overflow-hidden">
-            {/* Corner Tech Markers */}
             <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500/50"></div>
             <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500/50"></div>
             <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500/50"></div>
@@ -70,6 +69,60 @@ const ProducerCard: React.FC<ProducerCardProps> = ({ producer, beatCount, onView
     );
 }
 
+const StudioGallery: React.FC<{ images: string[]; producerName: string }> = ({ images, producerName }) => {
+    const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+
+    if (!images || images.length === 0) return null;
+
+    return (
+        <div className="mt-8">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-4 bg-green-500"></div>
+                <h3 className="text-sm font-mono text-green-400 uppercase tracking-widest">STUDIO_SESSIONS</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                {images.map((img, idx) => (
+                    <div 
+                        key={idx}
+                        className="relative group cursor-pointer rounded-sm overflow-hidden border border-green-900/30 hover:border-green-500/50 transition-all"
+                        onClick={() => setSelectedIndex(idx)}
+                    >
+                        <img 
+                            src={img} 
+                            alt={`${producerName} studio ${idx + 1}`}
+                            className="w-full h-40 object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute bottom-2 left-2 text-[9px] font-mono text-green-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                            VIEW
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {selectedIndex !== null && (
+                <div 
+                    className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 cursor-pointer"
+                    onClick={() => setSelectedIndex(null)}
+                >
+                    <button 
+                        className="absolute top-6 right-6 text-green-500 hover:text-green-300 font-mono text-sm uppercase tracking-widest"
+                        onClick={() => setSelectedIndex(null)}
+                    >
+                        [CLOSE]
+                    </button>
+                    <img 
+                        src={images[selectedIndex]} 
+                        alt={`${producerName} studio full`}
+                        className="max-w-full max-h-[85vh] object-contain rounded-sm border border-green-900/30"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface ProducersPageProps {
     producers: Producer[];
     beats: Beat[];
@@ -83,23 +136,31 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-sm mb-4 border border-green-500/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
                     <Users className="w-8 h-8 text-green-400" />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold text-green-400 uppercase font-mono tracking-[0.2em] drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">PRODUCERS_UNIT</h1>
+                <h1 className="text-4xl md:text-5xl font-bold text-green-400 uppercase font-mono tracking-[0.2em] drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">PRODUCER</h1>
                 <p className="mt-4 text-sm text-green-800 max-w-2xl mx-auto font-mono uppercase tracking-widest">
-                    CORE SYSTEM OPERATORS.
+                    CORE SYSTEM OPERATOR.
                 </p>
             </div>
             
             {producers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div className="max-w-4xl mx-auto space-y-8">
                     {producers.map(producer => {
                         const count = beats.filter(b => b.producerId === producer.id).length;
                         return (
-                            <ProducerCard 
-                                key={producer.id} 
-                                producer={producer} 
-                                beatCount={count}
-                                onViewBeats={onFilterByProducer}
-                            />
+                            <div key={producer.id} className="bg-black border border-green-900/30 rounded-sm p-6 md:p-8">
+                                <div className="flex flex-col md:flex-row gap-8 items-start">
+                                    <div className="w-full md:w-1/3 flex justify-center">
+                                        <ProducerCard 
+                                            producer={producer} 
+                                            beatCount={count}
+                                            onViewBeats={onFilterByProducer}
+                                        />
+                                    </div>
+                                    <div className="w-full md:w-2/3">
+                                        <StudioGallery images={producer.gallery || []} producerName={producer.name} />
+                                    </div>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
@@ -108,6 +169,44 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                      <p className="text-green-800 font-mono uppercase text-xs tracking-widest">DATA_NOT_FOUND</p>
                 </div>
             )}
+
+            {/* Bio Section */}
+            <div className="max-w-3xl mx-auto mt-20 border-t border-green-900/30 pt-12">
+                <div className="bg-black border border-green-900/30 rounded-sm p-8 md:p-12 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500/50"></div>
+                    <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500/50"></div>
+                    <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500/50"></div>
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-green-500/50"></div>
+
+                    <h2 className="text-xl font-bold text-green-400 font-mono uppercase tracking-widest mb-6">
+                        Transformando ideias em músicas com identidade, emoção e qualidade profissional.
+                    </h2>
+                    
+                    <div className="space-y-4 text-sm text-green-700 font-mono leading-relaxed">
+                        <p>
+                            Sou <span className="text-green-400 font-bold">Rafael Magalhães</span>, mais conhecido como <span className="text-green-400 font-bold">RMX</span> ou <span className="text-green-400 font-bold">Rafa Mix</span>. Sou do Rio de Janeiro, engenheiro de mixagem e masterização, e produzo música desde os 16 anos. Hoje, aos 33 anos, continuo estudando, evoluindo e buscando extrair o melhor de cada projeto que passa pelas minhas mãos.
+                        </p>
+                        <p>
+                            Acredito que uma boa música vai muito além de uma boa produção. Cada artista tem uma história, uma identidade e uma mensagem que merecem ser respeitadas. Meu compromisso é entregar um trabalho com qualidade, transparência e dedicação, para que sua música represente exatamente quem você é.
+                        </p>
+                        <p>
+                            A música sempre foi o meu maior propósito. Meu sonho é viver dela, e acredito que o seu também seja transformar sua arte em algo cada vez maior. É por isso que vejo cada projeto como uma parceria, não apenas como um serviço.
+                        </p>
+                        <p>
+                            Se você chegou até aqui, talvez estejamos buscando a mesma coisa: criar músicas que conectem pessoas, despertem emoções e deixem uma marca. Será um prazer fazer parte da sua jornada e contribuir para que sua música alcance o resultado que você sempre imaginou.
+                        </p>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-green-900/30">
+                        <blockquote className="text-green-400 font-mono text-sm italic">
+                            "Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."
+                        </blockquote>
+                        <p className="text-green-700 font-mono text-xs mt-2 uppercase tracking-widest">
+                            Provérbios 16:3
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
