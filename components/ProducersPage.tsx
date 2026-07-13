@@ -70,6 +70,60 @@ const ProducerCard: React.FC<ProducerCardProps> = ({ producer, beatCount, onView
     );
 }
 
+const StudioGallery: React.FC<{ images: string[]; producerName: string }> = ({ images, producerName }) => {
+    const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+
+    if (!images || images.length === 0) return null;
+
+    return (
+        <div className="mt-8">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-4 bg-green-500"></div>
+                <h3 className="text-sm font-mono text-green-400 uppercase tracking-widest">STUDIO_SESSIONS</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                {images.map((img, idx) => (
+                    <div 
+                        key={idx}
+                        className="relative group cursor-pointer rounded-sm overflow-hidden border border-green-900/30 hover:border-green-500/50 transition-all"
+                        onClick={() => setSelectedIndex(idx)}
+                    >
+                        <img 
+                            src={img} 
+                            alt={`${producerName} studio ${idx + 1}`}
+                            className="w-full h-40 object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute bottom-2 left-2 text-[9px] font-mono text-green-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                            VIEW
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {selectedIndex !== null && (
+                <div 
+                    className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 cursor-pointer"
+                    onClick={() => setSelectedIndex(null)}
+                >
+                    <button 
+                        className="absolute top-6 right-6 text-green-500 hover:text-green-300 font-mono text-sm uppercase tracking-widest"
+                        onClick={() => setSelectedIndex(null)}
+                    >
+                        [CLOSE]
+                    </button>
+                    <img 
+                        src={images[selectedIndex]} 
+                        alt={`${producerName} studio full`}
+                        className="max-w-full max-h-[85vh] object-contain rounded-sm border border-green-900/30"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface ProducersPageProps {
     producers: Producer[];
     beats: Beat[];
@@ -90,16 +144,24 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
             </div>
             
             {producers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div className="max-w-4xl mx-auto space-y-8">
                     {producers.map(producer => {
                         const count = beats.filter(b => b.producerId === producer.id).length;
                         return (
-                            <ProducerCard 
-                                key={producer.id} 
-                                producer={producer} 
-                                beatCount={count}
-                                onViewBeats={onFilterByProducer}
-                            />
+                            <div key={producer.id} className="bg-black border border-green-900/30 rounded-sm p-6 md:p-8">
+                                <div className="flex flex-col md:flex-row gap-8 items-start">
+                                    <div className="w-full md:w-1/3 flex justify-center">
+                                        <ProducerCard 
+                                            producer={producer} 
+                                            beatCount={count}
+                                            onViewBeats={onFilterByProducer}
+                                        />
+                                    </div>
+                                    <div className="w-full md:w-2/3">
+                                        <StudioGallery images={producer.gallery || []} producerName={producer.name} />
+                                    </div>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>

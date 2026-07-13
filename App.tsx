@@ -91,6 +91,7 @@ export interface Producer {
   name: string;
   bio: string;
   avatarUrl: string;
+  gallery?: string[];
   socials: Partial<SocialLinks>;
 }
 
@@ -117,6 +118,7 @@ const mockProducers: Producer[] = [
     name: 'RMX',
     bio: 'CEO & Produtor Principal. Especialista em Trap e Hip-Hop.',
     avatarUrl: 'https://placehold.co/200x200/064e3b/4ade80?text=RMX',
+    gallery: ['/studio-standing.png', '/studio-sitting.png'],
     socials: { instagram: '#', twitter: '#' }
   }
 ];
