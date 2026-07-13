@@ -170,34 +170,67 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                 </div>
             )}
 
-            {/* Bio Section */}
-            <div className="max-w-3xl mx-auto mt-20 border-t border-green-900/30 pt-12">
+            {/* Bio Section - Layout com fotos intercaladas */}
+            <div className="max-w-4xl mx-auto mt-20 border-t border-green-900/30 pt-12">
                 <div className="bg-black border border-green-900/30 rounded-sm p-8 md:p-12 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500/50"></div>
                     <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500/50"></div>
                     <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500/50"></div>
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-green-500/50"></div>
 
-                    <h2 className="text-xl font-bold text-green-400 font-mono uppercase tracking-widest mb-6">
+                    {/* Título */}
+                    <h2 className="text-xl md:text-2xl font-bold text-green-400 font-mono uppercase tracking-widest mb-8 text-center">
                         Transformando ideias em músicas com identidade, emoção e qualidade profissional.
                     </h2>
                     
-                    <div className="space-y-4 text-sm text-green-700 font-mono leading-relaxed">
+                    {/* Primeiro parágrafo */}
+                    <div className="text-sm text-green-700 font-mono leading-relaxed mb-8">
                         <p>
                             Sou <span className="text-green-400 font-bold">Rafael Magalhães</span>, mais conhecido como <span className="text-green-400 font-bold">RMX</span> ou <span className="text-green-400 font-bold">Rafa Mix</span>. Sou do Rio de Janeiro, engenheiro de mixagem e masterização, e produzo música desde os 16 anos. Hoje, aos 33 anos, continuo estudando, evoluindo e buscando extrair o melhor de cada projeto que passa pelas minhas mãos.
                         </p>
+                    </div>
+
+                    {/* Primeira foto */}
+                    <div className="my-8 rounded-sm overflow-hidden border border-green-900/30">
+                        <img 
+                            src="/studio-standing.png" 
+                            alt="RMX no estúdio" 
+                            className="w-full h-auto object-cover max-h-[500px]"
+                        />
+                    </div>
+
+                    {/* Segundo parágrafo */}
+                    <div className="text-sm text-green-700 font-mono leading-relaxed mb-8">
                         <p>
                             Acredito que uma boa música vai muito além de uma boa produção. Cada artista tem uma história, uma identidade e uma mensagem que merecem ser respeitadas. Meu compromisso é entregar um trabalho com qualidade, transparência e dedicação, para que sua música represente exatamente quem você é.
                         </p>
+                    </div>
+
+                    {/* Segunda foto */}
+                    <div className="my-8 rounded-sm overflow-hidden border border-green-900/30">
+                        <img 
+                            src="/studio-sitting.png" 
+                            alt="RMX produzindo" 
+                            className="w-full h-auto object-cover max-h-[500px]"
+                        />
+                    </div>
+
+                    {/* Terceiro parágrafo */}
+                    <div className="text-sm text-green-700 font-mono leading-relaxed mb-8">
                         <p>
                             A música sempre foi o meu maior propósito. Meu sonho é viver dela, e acredito que o seu também seja transformar sua arte em algo cada vez maior. É por isso que vejo cada projeto como uma parceria, não apenas como um serviço.
                         </p>
+                    </div>
+
+                    {/* Quarto parágrafo */}
+                    <div className="text-sm text-green-700 font-mono leading-relaxed mb-8">
                         <p>
                             Se você chegou até aqui, talvez estejamos buscando a mesma coisa: criar músicas que conectem pessoas, despertem emoções e deixem uma marca. Será um prazer fazer parte da sua jornada e contribuir para que sua música alcance o resultado que você sempre imaginou.
                         </p>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-green-900/30">
+                    {/* Versículo */}
+                    <div className="mt-8 pt-6 border-t border-green-900/30 text-center">
                         <blockquote className="text-green-400 font-mono text-sm italic">
                             "Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."
                         </blockquote>
