@@ -24,7 +24,6 @@ interface ProducerCardProps {
 const ProducerCard: React.FC<ProducerCardProps> = ({ producer, beatCount, onViewBeats }) => {
     return (
         <Card className="p-6 flex flex-col items-center text-center transition-all duration-300 bg-black border border-green-900/40 rounded-sm hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] group relative overflow-hidden">
-            {/* Corner Tech Markers */}
             <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500/50"></div>
             <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500/50"></div>
             <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500/50"></div>
@@ -139,7 +138,7 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold text-green-400 uppercase font-mono tracking-[0.2em] drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">PRODUCER</h1>
                 <p className="mt-4 text-sm text-green-800 max-w-2xl mx-auto font-mono uppercase tracking-widest">
-                    CORE SYSTEM OPERATORS.
+                    CORE SYSTEM OPERATOR.
                 </p>
             </div>
             
@@ -170,6 +169,44 @@ const ProducersPage: React.FC<ProducersPageProps> = ({ producers, beats, onFilte
                      <p className="text-green-800 font-mono uppercase text-xs tracking-widest">DATA_NOT_FOUND</p>
                 </div>
             )}
+
+            {/* Bio Section */}
+            <div className="max-w-3xl mx-auto mt-20 border-t border-green-900/30 pt-12">
+                <div className="bg-black border border-green-900/30 rounded-sm p-8 md:p-12 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500/50"></div>
+                    <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500/50"></div>
+                    <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500/50"></div>
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-green-500/50"></div>
+
+                    <h2 className="text-xl font-bold text-green-400 font-mono uppercase tracking-widest mb-6">
+                        Transformando ideias em músicas com identidade, emoção e qualidade profissional.
+                    </h2>
+                    
+                    <div className="space-y-4 text-sm text-green-700 font-mono leading-relaxed">
+                        <p>
+                            Sou <span className="text-green-400 font-bold">Rafael Magalhães</span>, mais conhecido como <span className="text-green-400 font-bold">RMX</span> ou <span className="text-green-400 font-bold">Rafa Mix</span>. Sou do Rio de Janeiro, engenheiro de mixagem e masterização, e produzo música desde os 16 anos. Hoje, aos 33 anos, continuo estudando, evoluindo e buscando extrair o melhor de cada projeto que passa pelas minhas mãos.
+                        </p>
+                        <p>
+                            Acredito que uma boa música vai muito além de uma boa produção. Cada artista tem uma história, uma identidade e uma mensagem que merecem ser respeitadas. Meu compromisso é entregar um trabalho com qualidade, transparência e dedicação, para que sua música represente exatamente quem você é.
+                        </p>
+                        <p>
+                            A música sempre foi o meu maior propósito. Meu sonho é viver dela, e acredito que o seu também seja transformar sua arte em algo cada vez maior. É por isso que vejo cada projeto como uma parceria, não apenas como um serviço.
+                        </p>
+                        <p>
+                            Se você chegou até aqui, talvez estejamos buscando a mesma coisa: criar músicas que conectem pessoas, despertem emoções e deixem uma marca. Será um prazer fazer parte da sua jornada e contribuir para que sua música alcance o resultado que você sempre imaginou.
+                        </p>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-green-900/30">
+                        <blockquote className="text-green-400 font-mono text-sm italic">
+                            "Consagre ao Senhor tudo o que você faz, e os seus planos serão bem-sucedidos."
+                        </blockquote>
+                        <p className="text-green-700 font-mono text-xs mt-2 uppercase tracking-widest">
+                            Provérbios 16:3
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
