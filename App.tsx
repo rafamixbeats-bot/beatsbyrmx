@@ -258,8 +258,6 @@ const App = () => {
   const [licenseTermsInfo, setLicenseTermsInfo] = useState<{ beat: Beat; license: LicenseOption } | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showLanding, setShowLanding] = useState(true);
-  const [showBootTransition, setShowBootTransition] = useState(false);
 
   const filteredBeats = useMemo(() => {
     return beats.filter(beat =>
@@ -478,29 +476,12 @@ const App = () => {
     addToast('Configurações salvas!', 'success');
   };
 
-  const handleEnterLibrary = () => {
-    setShowLanding(false);
-    setShowBootTransition(true);
-  };
-
-  const handleBootComplete = () => {
-    setShowBootTransition(false);
-  };
-
   if (loading) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center">
         <p className="text-green-400 font-mono animate-pulse">LOADING_DATABASE...</p>
       </div>
     );
-  }
-
-  if (showLanding) {
-    return <LandingPage onEnter={handleEnterLibrary} />;
-  }
-
-  if (showBootTransition) {
-    return <BootTransition onComplete={handleBootComplete} />;
   }
 
   const renderView = () => {
