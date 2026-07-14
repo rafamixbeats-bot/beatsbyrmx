@@ -2,15 +2,44 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+const marqueeItems = [
+  'PRODUÇÃO DE ALTA QUALIDADE',
+  'MIX E MASTER PROFISSIONAL',
+  'DOWNLOAD INSTANTÂNEO',
+  'PAGAMENTO SEGURO',
+  'LICENCIAMENTO EXCLUSIVO',
+  'ENTREGA RÁPIDA',
+];
+
+const MarqueeTicker: React.FC = () => {
+  const items = [...marqueeItems, ...marqueeItems];
+
+  return (
+    <div className="w-full overflow-hidden border-t border-b border-green-900/30 bg-black py-3 relative">
+      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent z-10"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent z-10"></div>
+      <div className="flex animate-marquee whitespace-nowrap">
+        {items.map((item, idx) => (
+          <span key={idx} className="flex items-center mx-6 text-[10px] font-mono text-green-600 tracking-[0.3em] uppercase flex-shrink-0">
+            <span className="text-green-400 mr-3 text-xs drop-shadow-[0_0_4px_rgba(74,222,128,0.6)]">✔</span>
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer id="footer" className="bg-black border-t border-green-900/30 mt-auto pb-32 pt-10 relative overflow-hidden">
-      {/* Decorative Line */}
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-green-500/20 to-transparent"></div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <MarqueeTicker />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="flex flex-col md:flex-row justify-between items-center text-xs gap-6">
              
              <div className="flex items-center gap-2">
