@@ -5,6 +5,7 @@ import { Play, Pause, ShoppingCart, SoundWave, ArrowDownToLine, SearchIcon, Yout
 import type { Beat, SocialLinks } from '../App';
 import Card from './ContactSection';
 import { slugify } from './BeatPage';
+import TypingTransition from './TypingTransition';
 
 const BeatRow: React.FC<{
     beat: Beat;
@@ -200,17 +201,13 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                         </div>
                     </div>
 
-                    {/* Transição visual para a beat library */}
-                    <div className="my-16 flex flex-col items-center gap-3">
-                        <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-green-500/40 to-transparent"></div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-[10px] font-mono text-green-500 tracking-[0.4em] uppercase">ACCESS GRANTED</span>
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                        </div>
-                        <span className="text-[9px] font-mono text-green-800 tracking-[0.3em] uppercase">ENTERING BEAT LIBRARY...</span>
-                        <div className="w-[1px] h-16 bg-gradient-to-b from-green-500/40 to-transparent"></div>
-                    </div>
+                    {/* Transição digital para a beat library */}
+                    <TypingTransition lines={[
+                        { text: 'ACCESS GRANTED', delay: 400, speed: 35 },
+                        { text: 'INITIALIZING AUDIO DATABASE...', delay: 300, speed: 25 },
+                        { text: 'SCANNING SAMPLES...', delay: 200, speed: 30 },
+                        { text: 'LOADING BEAT_LIBRARY...', delay: 200, speed: 25 },
+                    ]} />
                 </div>
 
                 {/* === BEAT LIBRARY === */}
