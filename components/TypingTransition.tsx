@@ -99,9 +99,17 @@ const TypingTransition: React.FC<TypingTransitionProps> = ({ lines, onComplete }
         <div ref={containerRef} className="my-16 flex flex-col items-center gap-8">
             {/* Heartbeat RMX - fica visível sempre */}
             <div className="flex flex-col items-center gap-4">
-                <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest animate-heartbeat drop-shadow-[0_0_20px_rgba(74,222,128,0.6)]">
-                    RMX
-                </span>
+                <div className="relative">
+                    <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest glitch-text drop-shadow-[0_0_20px_rgba(74,222,128,0.6)]">
+                        RMX
+                    </span>
+                    <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest glitch-text-before absolute inset-0" aria-hidden="true">
+                        RMX
+                    </span>
+                    <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest glitch-text-after absolute inset-0" aria-hidden="true">
+                        RMX
+                    </span>
+                </div>
                 <svg className="w-48 h-8" viewBox="0 0 200 40">
                     <path 
                         d="M0,20 L40,20 L50,20 L55,10 L60,30 L65,5 L70,35 L75,20 L80,20 L120,20 L130,20 L135,10 L140,30 L145,5 L150,35 L155,20 L200,20" 
