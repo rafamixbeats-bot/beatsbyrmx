@@ -23,12 +23,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, cartCount, onToggleCart }) 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24">
           
-          {/* Desktop: Logo + Nav Links + Cart - Centro */}
+          {/* Desktop: Nav Links + Cart - Centro */}
           <div className="hidden md:flex items-center w-full">
             <div className="flex-1"></div>
             <div className="flex items-center gap-8">
-              <button onClick={() => onNavigate('store')} className="focus:outline-none group flex-shrink-0" aria-label="Página Inicial RMXBEATS">
-                <img src="/logo-rmx-transparent.png" alt="RMX" className="h-16 w-auto object-contain group-hover:opacity-80 transition-opacity" />
+              <button onClick={() => onNavigate('store')} className="text-green-400 hover:text-green-300 transition-colors text-xs font-bold font-mono uppercase tracking-widest hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
+                Home
               </button>
               {navLinks.map((link) => (
                 <button
@@ -49,16 +49,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, cartCount, onToggleCart }) 
             <div className="flex-1"></div>
           </div>
 
-          {/* Mobile: Hamburger + Logo centrada + Cart */}
+          {/* Mobile: Hamburger + Cart */}
           <div className="flex md:hidden items-center w-full">
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-green-400 hover:text-green-300 p-2 flex-shrink-0">
               {mobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
             </button>
-            <div className="flex-1 flex justify-center">
-              <button onClick={() => onNavigate('store')} className="focus:outline-none group" aria-label="Página Inicial RMXBEATS">
-                <img src="/logo-rmx-transparent.png" alt="RMX" className="h-14 w-auto object-contain group-hover:opacity-80 transition-opacity" />
-              </button>
-            </div>
+            <div className="flex-1"></div>
             <button onClick={onToggleCart} className="text-green-400 hover:text-green-300 p-2 flex-shrink-0 relative">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
