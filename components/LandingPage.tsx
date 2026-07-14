@@ -16,7 +16,7 @@ const LandingPage: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
                 setScrollProgress(progress);
 
                 // Quando chegar perto do final, transiciona automaticamente
-                if (progress > 85 && !hasTransitioned.current) {
+                if (progress > 90 && !hasTransitioned.current) {
                     hasTransitioned.current = true;
                     setTransitioning(true);
                     setTimeout(() => {
@@ -160,16 +160,30 @@ const LandingPage: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
                     {/* Espaço para scroll + indicador de transição */}
                     <div className="h-48 flex flex-col items-center justify-center">
                         {transitioning ? (
-                            <div className="text-center animate-pulse">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span className="text-[10px] font-mono text-green-400 tracking-[0.3em] uppercase">ACCESS GRANTED</span>
-                                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                </div>
-                                <span className="text-[9px] font-mono text-green-700 tracking-[0.3em] uppercase">
-                                    ENTERING BEAT LIBRARY...
+                            <div className="text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            {/* Heartbeat RMX */}
+                            <div className="relative">
+                                <span className="text-4xl md:text-5xl font-bold text-green-400 font-mono tracking-widest animate-heartbeat drop-shadow-[0_0_15px_rgba(74,222,128,0.6)]">
+                                    RMX
                                 </span>
                             </div>
+                            {/* ECG Line */}
+                            <svg className="w-48 h-8" viewBox="0 0 200 40">
+                                <path 
+                                    d="M0,20 L40,20 L50,20 L55,10 L60,30 L65,5 L70,35 L75,20 L80,20 L120,20 L130,20 L135,10 L140,30 L145,5 L150,35 L155,20 L200,20" 
+                                    fill="none" 
+                                    stroke="#22c55e" 
+                                    strokeWidth="1.5"
+                                    className="animate-ecg-draw"
+                                    style={{ filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.8))' }}
+                                />
+                            </svg>
+                            <span className="text-[10px] font-mono text-green-500 tracking-[0.4em] uppercase animate-pulse">
+                                ENTERING BEAT LIBRARY...
+                            </span>
+                        </div>
+                    </div>
                         ) : (
                             <div className="flex flex-col items-center gap-2">
                                 <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-green-500/40 to-transparent"></div>

@@ -162,6 +162,24 @@
         0% { transform: translateX(0); }
         100% { transform: translateX(-50%); }
       }
+      @keyframes heartbeat {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        15% { transform: scale(1.15); opacity: 1; }
+        30% { transform: scale(1); opacity: 1; }
+        45% { transform: scale(1.1); opacity: 0.9; }
+        60% { transform: scale(1); opacity: 1; }
+      }
+      .animate-heartbeat {
+        animation: heartbeat 1.2s ease-in-out infinite;
+      }
+      @keyframes ecgDraw {
+        0% { stroke-dashoffset: 400; }
+        100% { stroke-dashoffset: 0; }
+      }
+      .animate-ecg-draw {
+        stroke-dasharray: 400;
+        animation: ecgDraw 1.5s ease-in-out infinite;
+      }
     </style>
 
 </head>
