@@ -44,12 +44,12 @@ const TypingTransition: React.FC<TypingTransitionProps> = ({ lines, onComplete }
         return () => observer.disconnect();
     }, [started]);
 
-    // Heartbeat dura 2 segundos depois some
+    // Heartbeat aparece e terminal começa depois
     useEffect(() => {
         if (!showHeartbeat) return;
         const timeout = setTimeout(() => {
             setHeartbeatDone(true);
-        }, 2000);
+        }, 1500);
         return () => clearTimeout(timeout);
     }, [showHeartbeat]);
 
@@ -97,28 +97,25 @@ const TypingTransition: React.FC<TypingTransitionProps> = ({ lines, onComplete }
 
     return (
         <div ref={containerRef} className="my-16 flex flex-col items-center gap-8">
-            {/* Heartbeat RMX */}
-            <div className={`transition-all duration-500 ${heartbeatDone ? 'opacity-0 scale-95 h-0 overflow-hidden' : 'opacity-100 scale-100'}`}>
-                <div className="flex flex-col items-center gap-4">
-                    <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest animate-heartbeat drop-shadow-[0_0_20px_rgba(74,222,128,0.6)]">
-                        RMX
-                    </span>
-                    <svg className="w-48 h-8" viewBox="0 0 200 40">
-                        <path 
-                            d="M0,20 L40,20 L50,20 L55,10 L60,30 L65,5 L70,35 L75,20 L80,20 L120,20 L130,20 L135,10 L140,30 L145,5 L150,35 L155,20 L200,20" 
-                            fill="none" 
-                            stroke="#22c55e" 
-                            strokeWidth="1.5"
-                            className="animate-ecg-draw"
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.8))' }}
-                        />
-                    </svg>
-                    <span className="text-[10px] font-mono text-green-600 tracking-[0.3em] uppercase">INITIALIZING...</span>
-                </div>
+            {/* Heartbeat RMX - fica visível sempre */}
+            <div className="flex flex-col items-center gap-4">
+                <span className="text-5xl md:text-6xl font-bold text-green-400 font-mono tracking-widest animate-heartbeat drop-shadow-[0_0_20px_rgba(74,222,128,0.6)]">
+                    RMX
+                </span>
+                <svg className="w-48 h-8" viewBox="0 0 200 40">
+                    <path 
+                        d="M0,20 L40,20 L50,20 L55,10 L60,30 L65,5 L70,35 L75,20 L80,20 L120,20 L130,20 L135,10 L140,30 L145,5 L150,35 L155,20 L200,20" 
+                        fill="none" 
+                        stroke="#22c55e" 
+                        strokeWidth="1.5"
+                        className="animate-ecg-draw"
+                        style={{ filter: 'drop-shadow(0 0 4px rgba(74,222,128,0.8))' }}
+                    />
+                </svg>
             </div>
 
-            {/* Terminal */}
-            <div className={`w-full max-w-lg transition-all duration-500 ${heartbeatDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            {/* Terminal - aparece depois do heartbeat */}
+            <div className={`w-full max-w-lg transition-all duration-700 ${heartbeatDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 max-h-0 overflow-hidden'}`}>
                 <div className="bg-black border border-green-900/30 rounded-sm p-6 md:p-8 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-green-500/50"></div>
                     <div className="absolute top-0 right-0 w-3 h-3 border-r border-t border-green-500/50"></div>
