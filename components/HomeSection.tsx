@@ -112,10 +112,6 @@ interface StoreSectionProps {
 }
 
 const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentBeat, isPlaying, onAddToCartClick, onDownloadClick, searchTerm, onSearch, socialLinks }) => {
-    
-    // Determine which beat to show in the header (Current or First)
-    const featuredBeat = currentBeat || beats[0];
-    const isFeaturedPlaying = currentBeat?.id === featuredBeat?.id && isPlaying;
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -132,79 +128,15 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                      {/* Decorative Scanline */}
                      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-green-500/30 to-transparent z-10"></div>
 
-                     {/* Header de Mídia do Cubo */}
-                     <div className="relative p-8 border-b border-green-900/30 bg-gradient-to-b from-green-900/5 to-transparent">
-                        
-                        {featuredBeat && (
-                            <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left animate-fade-in px-4">
-                                
-                                {/* Big Play Button - Reactor Style */}
-                                <div className="relative group/play">
-                                    <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl opacity-0 group-hover/play:opacity-100 transition-opacity"></div>
-                                    <button 
-                                        onClick={() => onPlayBeat(featuredBeat.id)}
-                                        className="w-24 h-24 flex-shrink-0 rounded-full bg-black border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-black flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.2)] transition-all hover:scale-105 active:scale-95 group relative z-10"
-                                    >
-                                        {isFeaturedPlaying ? (
-                                            <Pause className="w-10 h-10" />
-                                        ) : (
-                                            <Play className="w-10 h-10 ml-1" />
-                                        )}
-                                    </button>
-                                </div>
-
-                                {/* Featured Info */}
-                                <div className="flex-grow">
-                                    <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                                        {isFeaturedPlaying && <SoundWave className="w-4 h-4 text-green-400 animate-pulse" />}
-                                        <span className="text-[10px] font-bold tracking-[0.3em] text-green-600 uppercase font-mono bg-green-900/10 px-2 py-0.5 rounded-sm border border-green-900/30">
-                                            {isFeaturedPlaying ? 'SYSTEM_ACTIVE' : 'SELECTED_ITEM'}
-                                        </span>
-                                    </div>
-                                    <h2 className="text-3xl md:text-5xl font-bold text-green-400 font-mono tracking-widest uppercase mb-2 drop-shadow-[0_0_10px_rgba(74,222,128,0.4)]">
-                                        {featuredBeat.title}
-                                    </h2>
-                                    <p className="text-green-700 text-sm font-mono tracking-[0.2em] uppercase">
-                                        PROD_BY: {featuredBeat.producer}
-                                    </p>
-                                    
-                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4 text-[10px] text-green-800 font-mono tracking-widest">
-                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50 uppercase">{featuredBeat.bpm} BPM</span>
-                                        <span className="bg-black px-2 py-1 rounded-sm border border-green-900/50">{featuredBeat.key}</span>
-                                        <span className="bg-[#1e0538] text-purple-300 px-2 py-1 rounded-sm border border-purple-900/50 shadow-[0_0_5px_rgba(147,51,234,0.3)] uppercase">{featuredBeat.duration}</span>
-                                    </div>
-                                </div>
-
-                                {/* Header Action - Sci-Fi Cart */}
-                                <div className="flex-shrink-0 flex flex-col gap-3 min-w-[160px]">
-                                     <button 
-                                        onClick={() => onAddToCartClick(featuredBeat)}
-                                        className="group relative bg-black hover:bg-purple-900/20 text-white border border-purple-600 font-semibold py-4 px-6 rounded-sm transition-all overflow-hidden"
-                                     >
-                                        {/* Corner markers on button */}
-                                        <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-purple-400"></div>
-                                        <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-purple-400"></div>
-                                        
-                                        <div className="relative z-10 flex flex-col items-center">
-                                            <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase mb-1 group-hover:text-purple-300">ACQUIRE_LICENSE</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-green-400 font-bold font-mono text-xl tracking-wider drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
-                                                    {featuredBeat.price_mp3 > 0 ? `R$ ${featuredBeat.price_mp3.toFixed(2)}` : featuredBeat.price_wav > 0 ? `R$ ${featuredBeat.price_wav.toFixed(2)}` : 'FREE'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                     </button>
-
-                                     <button
-                                        onClick={() => onDownloadClick(featuredBeat)}
-                                        className="bg-transparent border border-green-900 text-green-700 hover:text-green-400 hover:border-green-500 py-2 px-4 rounded-sm transition-all text-[10px] font-mono tracking-widest uppercase flex items-center justify-center gap-2"
-                                     >
-                                        <ArrowDownToLine className="w-3 h-3" />
-                                        <span>DOWNLOAD_PREVIEW</span>
-                                     </button>
-                                </div>
-                            </div>
-                        )}
+                     {/* Header do Terminal */}
+                     <div className="relative p-4 border-b border-green-900/30 bg-gradient-to-b from-green-900/5 to-transparent">
+                         <div className="flex items-center justify-between px-2">
+                             <div className="flex items-center gap-2">
+                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                 <span className="text-[10px] font-mono text-green-500 tracking-[0.3em] uppercase">BEAT_DATABASE</span>
+                             </div>
+                             <span className="text-[9px] font-mono text-green-800 tracking-widest">{beats.length} ITEMS</span>
+                         </div>
                      </div>
 
                      {/* Lista de Beats */}
