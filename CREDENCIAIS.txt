@@ -1,0 +1,83 @@
+===========================================
+  CREDENCIAIS - beatsbyrmx.com
+  Salve este arquivo em local seguro!
+===========================================
+
+--- DOMINIO ---
+Dominio: beatsbyrmx.com
+DNS: Cloudflare
+Deploy: Vercel (auto-deploy via main branch)
+
+--- GITHUB ---
+Repo: https://github.com/rafamixbeats-bot/beatsbyrmx
+Branch main = Producao (Vercel)
+Branch dev-v2 = Desenvolvimento
+
+--- SUPABASE ---
+URL: https://jpwgtmrefcasmzijurvv.supabase.co
+Anon Key: sb_publishable_J-3VrjpN-TVCJ6ujLMX3VA_yYAI4NQt
+
+--- STRIPE ---
+Mode: LIVE (Producao)
+Secret Key: sk_live_... (no vercel.json)
+Publishable Key: pk_live_... (no frontend)
+Webhook: https://beatsbyrmx.com/api/webhook
+
+--- MERCADO PAGO ---
+Access Token: APP_USR-513341061088505-070721-39c1c63d7482aac453b54cd88bbda4ef-444208420
+Webhook URL: https://beatsbyrmx.com/api/mp-webhook
+Events: Order + Pagamentos (legacy)
+Mode: Producao
+
+--- CLOUDFLARE ---
+Account ID: 6d617bc2cac1909cf1dc804bc617d990
+R2 Bucket: beatsbyrmx-audio
+Public URL: https://pub-a0e5da93f63a416daff8f99cdaeaefc3.r2.dev
+
+--- ADMIN PANEL ---
+URL: https://beatsbyrmx.com/admin
+Usuario: admin
+Senha: rmxbeats2024
+
+--- TABELAS SUPABASE ---
+- beats
+- drum_kits
+- drum_kit_samples
+- settings
+- coupons
+
+--- VERCEL ---
+Project: beatsbyrmx
+Framework: Vite
+Auto-deploy: branch main
+
+===========================================
+  Ultima atualizacao: Julho 2026
+===========================================
+
+--- FLUXO DE TRABALHO (OBRIGATORIO) ---
+!!! REGRA CRITICA - NUNCA QUEBRAR !!!
+1. SEMPRE editar na branch dev-v2 PRIMEIRO
+2. Testar na dev-v2 (npm run build)
+3. Commit e push para dev-v2
+4. Depois de confirmar ok, fazer MERGE para main
+5. NUNCA editar direto na main para nao derrubar o site em producao
+===========================================
+
+--- CREDENCIAIS SUPABASE ---
+URL: https://jpwgtmrefcasmzijurvv.supabase.co
+Anon Key: sb_publishable_J-3VrjpN-TVCJ6ujLMX3VA_yYAI4NQt
+
+--- CREDENCIAIS ADMIN ---
+Usuario: admin
+Senha: rmxbeats2024
+
+--- KIE.AI (Nano Banana - AI Image Generation) ---
+URL: https://kie.ai
+API Key: 14459ae0557664df857e1dd2cb6baa4d14459ae0557664df857e1dd2cb6baa4d
+Model: google/nano-banana
+Docs: https://kie.ai/model/google/nano-banana.md
+
+--- CLOUDFLARE R2 (API Token para listagem/cleanup) ---
+Access Key ID: d4d394a7f06042de945589b56bdcd682
+Secret Access Key: 1fb42b62fa28ead45f3886fa4738469ddf3070b4295101d85c642b447ba9c673

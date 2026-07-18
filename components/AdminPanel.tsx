@@ -839,6 +839,50 @@ useEffect(() => {
             setFixingKitId(null);
         }
     };
+
+    const handleGenerateAIArtwork = async (kit: DrumKit) => {
+        setFixingKitId(kit.id);
+        try {
+            const sampleCount = kit.samples?.length || 0;
+            const prompt = `Dark cyberpunk laboratory artwork for a sound kit called "${kit.title}". Features: an old CRT computer monitor in the center displaying the kit name "${kit.title}" in bold white text with a green ECG waveform line below. To the right, an IV bag with glowing green liquid labeled "MELODY_VITALS" connected by a tube to the monitor. Left side has a vertical green ECG line. Bottom has two info panels with system details (${sampleCount} samples, 24-bit WAV, royalty free) and a purple "ACQUIRE KIT" button. Dark background with subtle green grid, corner markers, very detailed 3D rendered style with reflections. Cyberpunk lab aesthetic, green and black color scheme.`;
+
+            const res = await fetch('/api/generate-artwork', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt }),
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to generate artwork');
+            }
+
+            const { imageUrl } = await res.json();
+
+            if (imageUrl) {
+                // Download the image and upload to R2
+                const imgRes = await fetch(imageUrl);
+                const blob = await imgRes.blob();
+                const file = new File([blob], `${kit.title.replace(/[^a-zA-Z0-9]/g, '_')}_ai_artwork.png`, { type: 'image/png' });
+                const publicUrl = await uploadAnyFile(file);
+
+                if (publicUrl) {
+                    const { error } = await supabase
+                        .from('drum_kits')
+                        .update({ artworkUrl: publicUrl })
+                        .eq('id', kit.id);
+                    if (error) throw error;
+                    onUpdateDrumKit(kit.id, { artworkUrl: publicUrl });
+                    addToast(`Artwork IA gerada para "${kit.title}"`, 'success');
+                }
+            }
+        } catch (error: any) {
+            console.error("Error generating AI artwork:", error);
+            addToast(`Erro IA: ${error.message}`, 'error');
+        } finally {
+            setFixingKitId(null);
+        }
+    };
     
     const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -1320,8 +1364,11 @@ const handleDeleteCoupon = async (id: string) => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <button onClick={() => handleGenerateKitArtwork(kit)} title="GERAR ARTWORK" disabled={fixingKitId === kit.id} className="p-2 border border-transparent rounded-sm transition-all text-green-700 hover:text-purple-400 hover:border-purple-500/30">
+                                                    <button onClick={() => handleGenerateKitArtwork(kit)} title="GERAR ARTWORK (CANVAS)" disabled={fixingKitId === kit.id} className="p-2 border border-transparent rounded-sm transition-all text-green-700 hover:text-green-400 hover:border-green-500/30">
                                                         <span className="text-xs font-mono">🎨</span>
+                                                    </button>
+                                                    <button onClick={() => handleGenerateAIArtwork(kit)} title="GERAR ARTWORK (IA)" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-purple-400 hover:border-purple-500/30'}`}>
+                                                        <span className="text-xs font-mono">{fixingKitId === kit.id ? '⏳' : '🤖'}</span>
                                                     </button>
                                                     <button onClick={() => handleFixMimeTypes(kit)} title="CORRIGIR MIME TYPES" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-yellow-400 hover:border-yellow-500/30'}`}>
                                                         <span className="text-xs font-mono">{fixingKitId === kit.id ? '⏳' : '🔧'}</span>
