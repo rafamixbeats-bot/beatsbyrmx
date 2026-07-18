@@ -288,6 +288,25 @@ useEffect(() => {
         }
     };
 
+    const uploadAnyFile = async (file: File): Promise<string | null> => {
+        try {
+            const contentType = file.type || 'application/octet-stream';
+            const res = await fetch(`/api/get-presigned-post?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(contentType)}`);
+            if (!res.ok) throw new Error('Falha ao obter URL de upload');
+            const { uploadUrl, publicUrl } = await res.json();
+            const uploadRes = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': contentType },
+            });
+            if (!uploadRes.ok) throw new Error(`Upload falhou: ${uploadRes.status}`);
+            return publicUrl;
+        } catch (error: any) {
+            console.error('Erro no upload:', error);
+            return null;
+        }
+    };
+
     const handleDeleteBeatClick = async (beat: Beat) => {
         if (!confirm(`EXCLUIR "${beat.title}"?`)) return;
         onDeleteBeat(beat);
@@ -589,7 +608,7 @@ useEffect(() => {
             });
             const file = new File([blob], `${kit.title.replace(/[^a-zA-Z0-9]/g, '_')}_artwork.png`, { type: 'image/png' });
 
-            const publicUrl = await uploadFile(file, () => {}, () => {});
+            const publicUrl = await uploadAnyFile(file);
 
             if (publicUrl) {
                 const { error } = await supabase
