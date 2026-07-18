@@ -622,32 +622,16 @@ useEffect(() => {
             ctx.lineWidth = 1;
             ctx.strokeRect(monX, monY, monW, monH);
 
-            // Inner sample box
-            const innerW = 160;
-            const innerH = 120;
-            const innerX = monX + 20;
-            const innerY = monY + 30;
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.06)';
-            ctx.fillRect(innerX, innerY, innerW, innerH);
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
-            ctx.strokeRect(innerX, innerY, innerW, innerH);
-
-            // "SAMPLES" label
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
-            ctx.font = '9px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('SAMPLES', innerX + 10, innerY + 18);
-
-            // Waveform in monitor
+            // Waveform
             ctx.beginPath();
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 2;
             ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
             ctx.shadowBlur = 4;
-            const waveY = monY + monH / 2 + 10;
-            ctx.moveTo(monX + 200, waveY);
-            for (let x = monX + 200; x < monX + monW - 20; x += 2) {
-                const progress = (x - monX - 200) / (monW - 220);
+            const waveY = monY + monH / 2;
+            ctx.moveTo(monX + 20, waveY);
+            for (let x = monX + 20; x < monX + monW - 20; x += 2) {
+                const progress = (x - monX - 20) / (monW - 40);
                 let y = waveY;
                 const pos = (progress * 5) % 1;
                 if (pos > 0.1 && pos < 0.14) y = waveY - 5;
