@@ -613,7 +613,7 @@ useEffect(() => {
             if (publicUrl) {
                 const { error } = await supabase
                     .from('drum_kits')
-                    .update({ artwork_url: publicUrl })
+                    .update({ artworkUrl: publicUrl })
                     .eq('id', kit.id);
                 if (error) throw error;
                 setDrumKits(prev => prev.map(k => k.id === kit.id ? { ...k, artworkUrl: publicUrl } : k));
