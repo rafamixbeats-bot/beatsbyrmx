@@ -72,11 +72,16 @@ Anon Key: sb_publishable_J-3VrjpN-TVCJ6ujLMX3VA_yYAI4NQt
 Usuario: admin
 Senha: rmxbeats2024
 
---- KIE.AI (Nano Banana - AI Image Generation) ---
-URL: https://kie.ai
+--- GOOGLE GEMINI API (Image Generation - GRATIS) ---
+API Key: AIzaSyAVHLssfulvQLWh_MOrnisJ45GuohZyXnU
+Model: gemini-2.0-flash-exp
+Endpoint: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent
+Docs: https://ai.google.dev/gemini-api/docs/image-generation
+
+--- KIE.AI (Nano Banana - DESCONTINUADO) ---
 API Key: 14459ae0557664df857e1dd2cb6baa4d
 Model: google/nano-banana
-Docs: https://kie.ai/model/google/nano-banana.md
+Status: NAO USAR - substituido pelo Gemini API (gratis)
 
 --- CLOUDFLARE R2 (API Token para listagem/cleanup) ---
 Access Key ID: d4d394a7f06042de945589b56bdcd682

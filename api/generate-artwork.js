@@ -9,67 +9,46 @@ export default async function handler(req, res) {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
 
-  const KIE_API_KEY = process.env.KIE_API_KEY;
-  if (!KIE_API_KEY) return res.status(500).json({ error: 'KIE_API_KEY not configured' });
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
 
   try {
-    // Step 1: Create generation task
-    const createRes = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`;
+
+    const geminiRes = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KIE_API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/nano-banana',
-        input: {
-          prompt,
-          output_format: 'png',
-          aspect_ratio: '1:1',
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseModalities: ['IMAGE', 'TEXT'],
         },
       }),
     });
 
-    if (!createRes.ok) {
-      const errText = await createRes.text();
-      throw new Error(`Kie.ai create task failed: ${createRes.status} - ${errText}`);
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      throw new Error(`Gemini API failed: ${geminiRes.status} - ${errText}`);
     }
 
-    const createData = await createRes.json();
-    const taskId = createData.data?.taskId;
+    const data = await geminiRes.json();
 
-    if (!taskId) throw new Error('No taskId returned from Kie.ai');
+    const candidates = data.candidates || [];
+    if (candidates.length === 0) throw new Error('No candidates returned from Gemini');
 
-    // Step 2: Poll for result using /recordInfo (max 120 seconds)
-    let resultUrl = null;
-    for (let i = 0; i < 40; i++) {
-      await new Promise(r => setTimeout(r, 3000));
-
-      const pollRes = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${taskId}`, {
-        headers: { 'Authorization': `Bearer ${KIE_API_KEY}` },
-      });
-
-      if (!pollRes.ok) continue;
-
-      const pollData = await pollRes.json();
-      const state = pollData.data?.state;
-
-      if (state === 'success') {
-        const resultJson = JSON.parse(pollData.data?.resultJson || '{}');
-        resultUrl = resultJson.resultUrls?.[0];
-        break;
-      }
-
-      if (state === 'fail') {
-        throw new Error('Image generation failed: ' + (pollData.data?.failMsg || 'Unknown error'));
+    const parts = candidates[0].content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData && part.inlineData.data) {
+        const mimeType = part.inlineData.mimeType || 'image/png';
+        const ext = mimeType.includes('jpeg') || mimeType.includes('jpg') ? 'jpg' : 'png';
+        const dataUrl = `data:${mimeType};base64,${part.inlineData.data}`;
+        return res.status(200).json({ imageUrl: dataUrl });
       }
     }
 
-    if (!resultUrl) throw new Error('Timeout waiting for image generation (120s)');
-
-    return res.status(200).json({ imageUrl: resultUrl });
+    throw new Error('No image data found in Gemini response');
   } catch (error) {
-    console.error('Nano Banana error:', error.message);
+    console.error('Gemini artwork error:', error.message);
     return res.status(500).json({ error: error.message });
   }
 }
