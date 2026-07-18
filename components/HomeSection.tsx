@@ -157,15 +157,6 @@ const StoreSection: React.FC<StoreSectionProps> = ({ beats, onPlayBeat, currentB
                             </p>
                         </div>
 
-                        <div className="my-10 rounded-sm overflow-hidden border border-green-900/30 relative group">
-                            <img src="/studio-standing.png" alt="RMX no estúdio" className="w-full h-auto object-cover max-h-[500px]" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
-                            <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                                <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-[9px] font-mono text-green-500 tracking-[0.3em] uppercase drop-shadow-[0_0_3px_rgba(0,0,0,1)]">STUDIO_SECTOR_01</span>
-                            </div>
-                        </div>
-
                         <div className="text-sm md:text-base text-green-700 font-mono leading-relaxed mb-8">
                             <p>
                                 Acredito que uma boa música vai muito além de uma boa produção. Cada artista tem uma história, uma identidade e uma mensagem que merecem ser respeitadas. Meu compromisso é entregar um trabalho com qualidade, transparência e dedicação, para que sua música represente exatamente quem você é.
