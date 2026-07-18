@@ -22,7 +22,11 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'google/nano-banana',
-        input: { prompt },
+        input: {
+          prompt,
+          output_format: 'png',
+          aspect_ratio: '1:1',
+        },
       }),
     });
 
@@ -32,37 +36,38 @@ export default async function handler(req, res) {
     }
 
     const createData = await createRes.json();
-    const taskId = createData.data?.taskId || createData.taskId || createData.id;
+    const taskId = createData.data?.taskId;
 
     if (!taskId) throw new Error('No taskId returned from Kie.ai');
 
-    // Step 2: Poll for result (max 60 seconds)
-    let result = null;
-    for (let i = 0; i < 30; i++) {
-      await new Promise(r => setTimeout(r, 2000));
+    // Step 2: Poll for result using /recordInfo (max 120 seconds)
+    let resultUrl = null;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
 
-      const pollRes = await fetch(`https://api.kie.ai/api/v1/jobs/queryTask?taskId=${taskId}`, {
+      const pollRes = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${taskId}`, {
         headers: { 'Authorization': `Bearer ${KIE_API_KEY}` },
       });
 
       if (!pollRes.ok) continue;
 
       const pollData = await pollRes.json();
-      const status = pollData.data?.status || pollData.status;
+      const state = pollData.data?.state;
 
-      if (status === 'COMPLETED' || status === 'completed' || status === 'SUCCESS') {
-        result = pollData.data?.result?.imageUrl || pollData.data?.result?.url || pollData.data?.imageUrl || pollData.data?.output?.imageUrl;
+      if (state === 'success') {
+        const resultJson = JSON.parse(pollData.data?.resultJson || '{}');
+        resultUrl = resultJson.resultUrls?.[0];
         break;
       }
 
-      if (status === 'FAILED' || status === 'failed' || status === 'ERROR') {
-        throw new Error('Image generation failed: ' + (pollData.data?.error || 'Unknown error'));
+      if (state === 'fail') {
+        throw new Error('Image generation failed: ' + (pollData.data?.failMsg || 'Unknown error'));
       }
     }
 
-    if (!result) throw new Error('Timeout waiting for image generation');
+    if (!resultUrl) throw new Error('Timeout waiting for image generation (120s)');
 
-    return res.status(200).json({ imageUrl: result });
+    return res.status(200).json({ imageUrl: resultUrl });
   } catch (error) {
     console.error('Nano Banana error:', error.message);
     return res.status(500).json({ error: error.message });

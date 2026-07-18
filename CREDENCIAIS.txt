@@ -74,7 +74,7 @@ Senha: rmxbeats2024
 
 --- KIE.AI (Nano Banana - AI Image Generation) ---
 URL: https://kie.ai
-API Key: 14459ae0557664df857e1dd2cb6baa4d14459ae0557664df857e1dd2cb6baa4d
+API Key: 14459ae0557664df857e1dd2cb6baa4d
 Model: google/nano-banana
 Docs: https://kie.ai/model/google/nano-banana.md
 
