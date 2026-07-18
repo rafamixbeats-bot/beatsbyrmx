@@ -616,7 +616,7 @@ useEffect(() => {
                     .update({ artworkUrl: publicUrl })
                     .eq('id', kit.id);
                 if (error) throw error;
-                setDrumKits(prev => prev.map(k => k.id === kit.id ? { ...k, artworkUrl: publicUrl } : k));
+                onUpdateDrumKit(kit.id, { artworkUrl: publicUrl });
                 addToast(`Artwork gerada e salva para "${kit.title}"`, 'success');
             }
         } catch (error: any) {
