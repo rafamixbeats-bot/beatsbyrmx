@@ -592,31 +592,48 @@ useEffect(() => {
 
             // Screen glow
             const screenGrad = ctx.createRadialGradient(monX + monW/2, monY + monH/2, 0, monX + monW/2, monY + monH/2, monW/2);
-            screenGrad.addColorStop(0, 'rgba(34, 197, 94, 0.05)');
+            screenGrad.addColorStop(0, 'rgba(34, 197, 94, 0.08)');
             screenGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = screenGrad;
             ctx.fillRect(monX, monY, monW, monH);
 
-            // ECG line inside monitor
+            // Kit name inside monitor - BIG bold
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(34, 197, 94, 0.5)';
+            ctx.shadowBlur = 20;
+            const monitorTitle = displayTitle;
+            if (monitorTitle.length > 14) {
+                const mw = monitorTitle.split(/[\s_]+/).filter(Boolean);
+                const mid = Math.ceil(mw.length / 2);
+                ctx.font = 'bold 56px monospace';
+                ctx.fillText(mw.slice(0, mid).join(' '), monX + monW/2, monY + monH/2 - 20);
+                ctx.fillText(mw.slice(mid).join(' '), monX + monW/2, monY + monH/2 + 45);
+            } else {
+                ctx.font = 'bold 64px monospace';
+                ctx.fillText(monitorTitle, monX + monW/2, monY + monH/2 + 15);
+            }
+            ctx.shadowBlur = 0;
+
+            // ECG line below name
             ctx.beginPath();
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 2;
             ctx.shadowColor = 'rgba(34, 197, 94, 0.8)';
             ctx.shadowBlur = 8;
-            const ecgY = monY + monH / 2;
-            ctx.moveTo(monX + 15, ecgY);
+            const ecgLineY = monY + monH - 40;
+            ctx.moveTo(monX + 15, ecgLineY);
             for (let x = monX + 15; x < monX + monW - 15; x += 2) {
                 const progress = (x - monX) / monW;
-                let y = ecgY;
+                let y = ecgLineY;
                 const pos = (progress * 6) % 1;
-                if (pos > 0.08 && pos < 0.12) y = ecgY - 8;
-                else if (pos > 0.12 && pos < 0.15) y = ecgY + 5;
-                else if (pos > 0.15 && pos < 0.2) y = ecgY - 50;
-                else if (pos > 0.2 && pos < 0.24) y = ecgY + 35;
-                else if (pos > 0.24 && pos < 0.27) y = ecgY - 6;
-                else if (pos > 0.27 && pos < 0.3) y = ecgY;
-                else if (pos > 0.35 && pos < 0.45) y = ecgY - 12;
-                else if (pos > 0.5 && pos < 0.55) y = ecgY + 6;
+                if (pos > 0.08 && pos < 0.12) y = ecgLineY - 5;
+                else if (pos > 0.12 && pos < 0.15) y = ecgLineY + 3;
+                else if (pos > 0.15 && pos < 0.2) y = ecgLineY - 25;
+                else if (pos > 0.2 && pos < 0.24) y = ecgLineY + 18;
+                else if (pos > 0.24 && pos < 0.27) y = ecgLineY - 4;
+                else if (pos > 0.35 && pos < 0.45) y = ecgLineY - 8;
+                else if (pos > 0.5 && pos < 0.55) y = ecgLineY + 4;
                 ctx.lineTo(x, y);
             }
             ctx.stroke();
