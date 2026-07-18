@@ -511,6 +511,102 @@ useEffect(() => {
             setKitSubmissionMessage('');
         }
     };
+
+    const handleGenerateKitArtwork = async (kit: DrumKit) => {
+        setFixingKitId(kit.id);
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas not supported');
+
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, 800, 800);
+            const gridSize = 40;
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= 800; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 800); ctx.stroke();
+            }
+            for (let y = 0; y <= 800; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+            }
+
+            ctx.font = '14px monospace';
+            ctx.fillStyle = 'rgba(0, 255, 65, 0.3)';
+            ctx.fillText('SOUND_KIT_V2', 50, 40);
+            ctx.fillText(`ID: ${kit.id.slice(0, 8).toUpperCase()}`, 50, 60);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 52px monospace';
+            const words = kit.title.toUpperCase().split(' ');
+            let y = 160;
+            let line = '';
+            words.forEach((word: string) => {
+                const testLine = line + word + ' ';
+                if (ctx.measureText(testLine).width > 500 && line !== '') {
+                    ctx.fillText(line, 50, y);
+                    line = word + ' ';
+                    y += 60;
+                } else {
+                    line = testLine;
+                }
+            });
+            ctx.fillText(line, 50, y);
+
+            ctx.fillStyle = '#00ff41';
+            ctx.font = '18px monospace';
+            const sampleCount = kit.samples?.length || 0;
+            ctx.fillText(`// ${sampleCount} SAMPLES LOADED`, 50, y + 50);
+            ctx.fillText('// FORMAT: WAV + MP3', 50, y + 75);
+            ctx.fillText('// ROYALTY FREE', 50, y + 100);
+
+            ctx.fillStyle = 'rgba(0, 255, 65, 0.15)';
+            ctx.fillRect(350, 300, 350, 200);
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(350, 300, 350, 200);
+            ctx.beginPath();
+            ctx.moveTo(360, 400);
+            for (let x = 0; x < 330; x += 4) {
+                ctx.lineTo(360 + x, 400 + Math.sin((x + Date.now()) * 0.05) * 40 * Math.sin(x * 0.01));
+            }
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const price = kit.price || 0;
+            ctx.font = 'bold 64px monospace';
+            ctx.fillStyle = '#00ff41';
+            ctx.fillText(`R$ ${price.toFixed(0)}`, 50, 730);
+            ctx.font = '20px monospace';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fillText(`,${(price % 1).toFixed(2).slice(2)}`, 50 + ctx.measureText(`R$ ${price.toFixed(0)}`).width, 730);
+
+            const blob = await new Promise<Blob>((resolve) => {
+                canvas.toBlob((b) => resolve(b!), 'image/png', 1.0);
+            });
+            const file = new File([blob], `${kit.title.replace(/[^a-zA-Z0-9]/g, '_')}_artwork.png`, { type: 'image/png' });
+
+            const publicUrl = await uploadFile(file, () => {}, () => {});
+
+            if (publicUrl) {
+                const { error } = await supabase
+                    .from('drum_kits')
+                    .update({ artwork_url: publicUrl })
+                    .eq('id', kit.id);
+                if (error) throw error;
+                setDrumKits(prev => prev.map(k => k.id === kit.id ? { ...k, artworkUrl: publicUrl } : k));
+                addToast(`Artwork gerada e salva para "${kit.title}"`, 'success');
+            }
+        } catch (error: any) {
+            console.error("Error generating artwork:", error);
+            addToast(`Erro ao gerar artwork: ${error.message}`, 'error');
+        } finally {
+            setFixingKitId(null);
+        }
+    };
     
     const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -992,6 +1088,9 @@ const handleDeleteCoupon = async (id: string) => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
+                                                    <button onClick={() => handleGenerateKitArtwork(kit)} title="GERAR ARTWORK" disabled={fixingKitId === kit.id} className="p-2 border border-transparent rounded-sm transition-all text-green-700 hover:text-purple-400 hover:border-purple-500/30">
+                                                        <span className="text-xs font-mono">🎨</span>
+                                                    </button>
                                                     <button onClick={() => handleFixMimeTypes(kit)} title="CORRIGIR MIME TYPES" disabled={fixingKitId === kit.id} className={`p-2 border border-transparent rounded-sm transition-all ${fixingKitId === kit.id ? 'text-yellow-500 animate-pulse border-yellow-500/30' : 'text-green-700 hover:text-yellow-400 hover:border-yellow-500/30'}`}>
                                                         <span className="text-xs font-mono">{fixingKitId === kit.id ? '⏳' : '🔧'}</span>
                                                     </button>
