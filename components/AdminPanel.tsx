@@ -535,182 +535,199 @@ useEffect(() => {
         setFixingKitId(kit.id);
         try {
             const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 800;
+            const w = 800, h = 800;
+            canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas not supported');
 
-            const w = 800, h = 800;
-            canvas.width = w; canvas.height = h;
+            const sampleCount = kit.samples?.length || 0;
 
-            // Background
-            ctx.fillStyle = '#050808';
+            // === BACKGROUND ===
+            ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, w, h);
 
-            // Grid
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.04)';
+            // Grid overlay (20px)
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.08)';
             ctx.lineWidth = 0.5;
-            for (let i = 0; i < w; i += 30) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
-            for (let i = 0; i < h; i += 30) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
+            for (let i = 0; i < w; i += 20) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
+            for (let i = 0; i < h; i += 20) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
 
-            // Scanlines
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.015)';
-            for (let i = 0; i < h; i += 3) ctx.fillRect(0, i, w, 1);
+            // === OUTER BORDER ===
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, w, h);
 
-            // Double border
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.25)'; ctx.lineWidth = 1;
-            ctx.strokeRect(20, 20, w - 40, h - 40);
-            ctx.strokeRect(24, 24, w - 48, h - 48);
+            // === TOP HEADER BAR (LAB-XXX + SAMPLES) ===
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.05)';
+            ctx.fillRect(0, 0, w, 60);
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(w, 60); ctx.stroke();
 
-            // Corner brackets
-            const cs = 30;
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.7)'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(20, 20 + cs); ctx.lineTo(20, 20); ctx.lineTo(20 + cs, 20); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(w - 20 - cs, 20); ctx.lineTo(w - 20, 20); ctx.lineTo(w - 20, 20 + cs); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(20, h - 20 - cs); ctx.lineTo(20, h - 20); ctx.lineTo(20 + cs, h - 20); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(w - 20 - cs, h - 20); ctx.lineTo(w - 20, h - 20); ctx.lineTo(w - 20, h - 20 - cs); ctx.stroke();
+            // Checkbox
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(25, 20, 16, 16);
 
-            // Header bar
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.08)';
-            ctx.fillRect(30, 30, w - 60, 50);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(30, 80); ctx.lineTo(w - 30, 80); ctx.stroke();
-
-            ctx.font = '11px monospace'; ctx.fillStyle = 'rgba(0, 255, 65, 0.5)';
+            // LAB-XXX
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+            ctx.font = 'bold 11px monospace';
             ctx.textAlign = 'left';
-            ctx.fillText('RMX_LAB // SOUND CHEMISTRY', 45, 50);
-            ctx.textAlign = 'right';
-            ctx.fillText(`ID:${kit.id.slice(0, 8).toUpperCase()}`, w - 45, 50);
+            ctx.fillText('LAB-001', 55, 33);
+
+            // Green dot + SAMPLES
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath(); ctx.arc(w - 85, 28, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+            ctx.font = 'bold 11px monospace';
             ctx.textAlign = 'left';
-            const sampleCount = kit.samples?.length || 0;
-            ctx.fillText('CLASS: AUDIOreagent', 45, 68);
-            ctx.textAlign = 'right';
-            ctx.fillText(`SAMPLES: ${sampleCount}`, w - 45, 68);
+            ctx.fillText(`${sampleCount} SAMPLES`, w - 75, 33);
 
-            // Chemical Element Box
-            const elX = 60, elY = 110, elW = w - 120, elH = 340;
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.03)';
-            ctx.fillRect(elX, elY, elW, elH);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.4)'; ctx.lineWidth = 2;
-            ctx.strokeRect(elX, elY, elW, elH);
-
-            // Atomic number
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.6)'; ctx.font = 'bold 18px monospace'; ctx.textAlign = 'left';
-            const hash = kit.title.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-            ctx.fillText(String(hash % 100).padStart(2, '0'), elX + 20, elY + 35);
-
-            // Category
-            ctx.textAlign = 'right'; ctx.font = '10px monospace'; ctx.fillStyle = 'rgba(0, 255, 65, 0.4)';
-            ctx.fillText('TRANSITION_METAL', elX + elW - 20, elY + 25);
-            ctx.fillText('GROUP: MELodic', elX + elW - 20, elY + 40);
-
-            // Divider
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.15)'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(elX + 15, elY + 50); ctx.lineTo(elX + elW - 15, elY + 50); ctx.stroke();
-
-            // Chemical Symbol
-            ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = 'rgba(0, 255, 65, 0.6)'; ctx.shadowBlur = 30;
-            const titleUpper = kit.title.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim();
-            const words = titleUpper.split(/\s+/).filter(Boolean);
-            let symbol = '';
-            if (words.length === 1) symbol = words[0].slice(0, 3);
-            else if (words.length === 2) symbol = words[0].slice(0, 2) + words[1].slice(0, 1);
-            else symbol = words.map(w => w[0]).join('').slice(0, 3);
-            if (symbol.length < 2) symbol = titleUpper.slice(0, 3);
-            ctx.font = 'bold 120px monospace';
-            ctx.fillText(symbol, w / 2, elY + 190);
+            // === TITLE ===
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 48px monospace';
+            ctx.textAlign = 'left';
+            ctx.shadowColor = 'rgba(74, 222, 128, 0.15)';
+            ctx.shadowBlur = 10;
+            const displayTitle = kit.title.toUpperCase();
+            if (displayTitle.length > 16) {
+                const words = displayTitle.split(/[\s_]+/).filter(Boolean);
+                const mid = Math.ceil(words.length / 2);
+                const line1 = words.slice(0, mid).join(' ');
+                const line2 = words.slice(mid).join(' ');
+                ctx.fillText(line1, 50, 130);
+                ctx.fillText(line2, 50, 185);
+            } else {
+                ctx.fillText(displayTitle, 50, 155);
+            }
             ctx.shadowBlur = 0;
 
-            // Element name
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.8)'; ctx.font = '16px monospace';
-            const displayName = titleUpper.length > 30 ? titleUpper.slice(0, 30) + '...' : titleUpper;
-            ctx.fillText(displayName, w / 2, elY + 230);
+            // === DESCRIPTION LINES ===
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.5)';
+            ctx.font = '13px monospace';
+            const descY = displayTitle.length > 16 ? 220 : 185;
+            ctx.fillText(`// ${sampleCount} SAMPLES LOADED`, 50, descY);
+            ctx.fillText('// FORMAT: WAV + MP3', 50, descY + 22);
+            ctx.fillText('// ROYALTY FREE', 50, descY + 44);
 
-            // Info
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.35)'; ctx.font = '12px monospace';
-            ctx.fillText(`${sampleCount} Samples // 24-Bit WAV // Royalty Free`, w / 2, elY + 260);
+            // === MONITOR BOX (waveform) ===
+            const monX = 50;
+            const monY = descY + 70;
+            const monW = w - 100;
+            const monH = 180;
 
-            // Bottom divider
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.15)';
-            ctx.beginPath(); ctx.moveTo(elX + 15, elY + 280); ctx.lineTo(elX + elW - 15, elY + 280); ctx.stroke();
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.04)';
+            ctx.fillRect(monX, monY, monW, monH);
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(monX, monY, monW, monH);
 
-            // Electron config
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.3)'; ctx.font = '10px monospace';
-            ctx.fillText(`ELECTRON_CONFIG: [${sampleCount}s${sampleCount > 10 ? '\u00B2' : ''}] // STATE: SOLID`, w / 2, elY + 305);
-            ctx.fillText(`HALF_LIFE: PERPETUAL // PURITY: 99.9%`, w / 2, elY + 320);
+            // Inner sample box
+            const innerW = 160;
+            const innerH = 120;
+            const innerX = monX + 20;
+            const innerY = monY + 30;
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.06)';
+            ctx.fillRect(innerX, innerY, innerW, innerH);
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.strokeRect(innerX, innerY, innerW, innerH);
 
-            // ECG Monitor
-            const monY = 470, monH = 140;
-            ctx.fillStyle = '#030505';
-            ctx.fillRect(40, monY, w - 80, monH);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)'; ctx.lineWidth = 1;
-            ctx.strokeRect(40, monY, w - 80, monH);
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
-            ctx.fillText('WAVEFORM_MONITOR', 50, monY + 14);
+            // "SAMPLES" label
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('SAMPLES', innerX + 10, innerY + 18);
 
-            ctx.beginPath(); ctx.strokeStyle = '#00ff41'; ctx.lineWidth = 2;
-            ctx.shadowColor = 'rgba(0, 255, 65, 0.7)'; ctx.shadowBlur = 6;
-            const ecgY = monY + monH / 2 + 10;
-            ctx.moveTo(50, ecgY);
-            for (let x = 50; x < w - 50; x += 2) {
-                const progress = (x - 50) / (w - 100);
-                let y = ecgY;
-                const pos = (progress * 6) % 1;
-                if (pos > 0.1 && pos < 0.13) y = ecgY - 6;
-                else if (pos > 0.13 && pos < 0.16) y = ecgY + 4;
-                else if (pos > 0.16 && pos < 0.2) y = ecgY - 35;
-                else if (pos > 0.2 && pos < 0.24) y = ecgY + 20;
-                else if (pos > 0.24 && pos < 0.27) y = ecgY - 4;
-                else if (pos > 0.35 && pos < 0.45) y = ecgY - 10;
-                else if (pos > 0.5 && pos < 0.55) y = ecgY + 5;
+            // Waveform in monitor
+            ctx.beginPath();
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
+            ctx.shadowBlur = 4;
+            const waveY = monY + monH / 2 + 10;
+            ctx.moveTo(monX + 200, waveY);
+            for (let x = monX + 200; x < monX + monW - 20; x += 2) {
+                const progress = (x - monX - 200) / (monW - 220);
+                let y = waveY;
+                const pos = (progress * 5) % 1;
+                if (pos > 0.1 && pos < 0.14) y = waveY - 5;
+                else if (pos > 0.14 && pos < 0.18) y = waveY + 3;
+                else if (pos > 0.18 && pos < 0.22) y = waveY - 30;
+                else if (pos > 0.22 && pos < 0.26) y = waveY + 18;
+                else if (pos > 0.26 && pos < 0.3) y = waveY - 3;
+                else if (pos > 0.4 && pos < 0.5) y = waveY - 8;
+                else if (pos > 0.6 && pos < 0.65) y = waveY + 4;
                 ctx.lineTo(x, y);
             }
-            ctx.stroke(); ctx.shadowBlur = 0;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
 
-            // Price section
-            const priceY = 640;
+            // === BOTTOM SECTION ===
+            const bottomY = monY + monH + 30;
+
+            // Kit name again
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px monospace';
+            ctx.textAlign = 'left';
+            if (displayTitle.length > 16) {
+                const words = displayTitle.split(/[\s_]+/).filter(Boolean);
+                const mid = Math.ceil(words.length / 2);
+                ctx.fillText(words.slice(0, mid).join(' '), 50, bottomY + 30);
+                ctx.fillText(words.slice(mid).join(' '), 50, bottomY + 65);
+            } else {
+                ctx.fillText(displayTitle, 50, bottomY + 35);
+            }
+
+            // Description
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
+            ctx.font = '10px monospace';
+            const tagY = displayTitle.length > 16 ? bottomY + 90 : bottomY + 60;
+            ctx.fillText(kit.description || 'COMPOUND DATA PENDING ANALYSIS.', 50, tagY);
+
+            // TAG badge
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+            const tagText = kit.tags?.[0]?.toUpperCase() || 'TRAP';
+            const tagTextW = ctx.measureText(tagText).width;
+            ctx.fillRect(50, tagY + 10, tagTextW + 16, 20);
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.strokeRect(50, tagY + 10, tagTextW + 16, 20);
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+            ctx.font = '9px monospace';
+            ctx.fillText(tagText, 58, tagY + 24);
+
+            // === PRICE BAR ===
+            const priceBarY = h - 80;
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, priceBarY); ctx.lineTo(w, priceBarY); ctx.stroke();
+
+            // "COMPRA VIA LOT"
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.35)';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('COMPRA VIA LOT', 50, priceBarY + 20);
+
+            // Price - exact value
+            ctx.fillStyle = '#22c55e';
+            ctx.font = 'bold 32px monospace';
+            ctx.textAlign = 'left';
             const price = kit.price || 0;
             const priceInt = Math.floor(price);
             const priceDec = Math.round((price - priceInt) * 100);
+            ctx.fillText(`R$ ${priceInt},${String(priceDec).padStart(2, '0')}`, 50, priceBarY + 55);
 
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.06)';
-            ctx.fillRect(40, priceY, 340, 120);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.3)'; ctx.lineWidth = 1;
-            ctx.strokeRect(40, priceY, 340, 120);
+            // === CORNER MARKERS ===
+            const cs = 12;
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(8, 8 + cs); ctx.lineTo(8, 8); ctx.lineTo(8 + cs, 8); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(w - 8 - cs, 8); ctx.lineTo(w - 8, 8); ctx.lineTo(w - 8, 8 + cs); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(8, h - 8 - cs); ctx.lineTo(8, h - 8); ctx.lineTo(8 + cs, h - 8); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(w - 8 - cs, h - 8); ctx.lineTo(w - 8, h - 8); ctx.lineTo(w - 8, h - 8 - cs); ctx.stroke();
 
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
-            ctx.fillText('VALOR_REAGENTE:', 55, priceY + 22);
-
-            ctx.fillStyle = '#00ff41'; ctx.font = 'bold 48px monospace';
-            ctx.shadowColor = 'rgba(0, 255, 65, 0.4)'; ctx.shadowBlur = 10;
-            ctx.fillText(`R$ ${priceInt}`, 55, priceY + 78);
-            ctx.shadowBlur = 0;
-            ctx.font = 'bold 28px monospace'; ctx.fillStyle = 'rgba(0, 255, 65, 0.7)';
-            ctx.fillText(`,${String(priceDec).padStart(2, '0')}`, 55 + ctx.measureText(`R$ ${priceInt}`).width + 4, priceY + 78);
-
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.25)'; ctx.font = '9px monospace';
-            ctx.fillText(`ROYALTY_FREE // LICENCA_ETerna`, 55, priceY + 100);
-
-            // Right action tag
-            const rightX = 410;
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.06)';
-            ctx.fillRect(rightX, priceY, w - 80 - 370, 120);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.3)';
-            ctx.strokeRect(rightX, priceY, w - 80 - 370, 120);
-
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.4)'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
-            const rxCenter = rightX + (w - 80 - 370) / 2;
-            ctx.fillText('STATUS:', rxCenter, priceY + 30);
-            ctx.fillStyle = '#00ff41'; ctx.font = 'bold 16px monospace';
-            ctx.fillText('AVAILABLE', rxCenter, priceY + 55);
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.3)'; ctx.font = '9px monospace';
-            ctx.fillText('ADICIONAR AO CARRINHO', rxCenter, priceY + 80);
-            ctx.fillText('DOWNLOAD INSTANTANEO', rxCenter, priceY + 95);
-
-            // Footer
-            ctx.fillStyle = 'rgba(0, 255, 65, 0.2)'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
-            ctx.fillText(`RMX_LAB // SOUND CHEMISTRY // ${new Date().getFullYear()}`, w / 2, h - 35);
+            // Scanline sweep effect
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.02)';
+            ctx.fillRect(0, 0, w, 2);
 
             const blob = await new Promise<Blob>((resolve) => {
                 canvas.toBlob((b) => resolve(b!), 'image/png', 1.0);
