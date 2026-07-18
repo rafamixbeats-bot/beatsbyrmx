@@ -5,6 +5,7 @@ import { UploadCloud, LogOut, BarChart2, Settings, Trash2, Music, Package, Dolla
 import type { Beat, SocialLinks, DrumKit, DrumKitSample, AdminSettings } from '../App';
 import { useToast } from './ToastProvider';
 import { supabase } from '../supabaseClient';
+import KitArtworkGenerator from './KitArtworkGenerator';
 
 
 interface AdminPanelProps {
@@ -172,6 +173,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ beats, drumKits, socialLinks, s
     const [kitTags, setKitTags] = useState('');
     const [kitSampleFiles, setKitSampleFiles] = useState<File[]>([]);
     const [kitArtworkFile, setKitArtworkFile] = useState<File | null>(null);
+    const [kitGeneratedArtwork, setKitGeneratedArtwork] = useState<string | null>(null);
     
     const [kitSubmissionStatus, setKitSubmissionStatus] = useState<SubmissionStatus>('idle');
     const [kitSubmissionMessage, setKitSubmissionMessage] = useState('');
@@ -471,7 +473,7 @@ useEffect(() => {
             setKitSubmissionStatus('saving');
             setKitSubmissionMessage('Registrando kit...');
             
-            const finalArtwork = artworkUrl || `https://placehold.co/400x400/000000/22c55e?text=${encodeURIComponent(kitTitle)}`;
+            const finalArtwork = artworkUrl || kitGeneratedArtwork || `https://placehold.co/400x400/000000/22c55e?text=${encodeURIComponent(kitTitle)}`;
             const slug = kitTitle.toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
             const samples: DrumKitSample[] = sampleUrls.map((s, i) => ({
@@ -499,7 +501,7 @@ useEffect(() => {
             };
             onAddDrumKit(newKitData);
             setKitTitle(''); setKitDescription(''); setKitPrice(79.90); setKitTags('');
-            setKitSampleFiles([]); setKitArtworkFile(null);
+            setKitSampleFiles([]); setKitArtworkFile(null); setKitGeneratedArtwork(null);
             setActiveTab('dashboard');
         } catch (error: any) {
             console.error("Error adding drum kit:", error);
@@ -1042,17 +1044,30 @@ const handleDeleteCoupon = async (id: string) => {
                                                        ))}
                                                    </div>
                                                )}
-                                           </div>
-                                           <FileInputField 
-                                             label="Capa (400x400)" 
-                                             id="kit-artwork-upload" 
-                                             file={kitArtworkFile} 
-                                             onChange={setKitArtworkFile} 
-                                             accept="image/*"
-                                             variant="default"
-                                             isOptional={true}
-                                             icon={<UploadCloud className="w-8 h-8 text-green-500" />} 
-                                         />
+                                       </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-green-600 mb-1 font-mono uppercase tracking-widest">
+                                                    Artwork Automática
+                                                </label>
+                                                <KitArtworkGenerator 
+                                                    title={kitTitle} 
+                                                    sampleCount={kitSampleFiles.length}
+                                                    onGenerated={(dataUrl) => setKitGeneratedArtwork(dataUrl)} 
+                                                />
+                                            </div>
+                                            <FileInputField 
+                                              label="Ou envie sua própria capa (400x400)" 
+                                              id="kit-artwork-upload" 
+                                              file={kitArtworkFile} 
+                                              onChange={setKitArtworkFile} 
+                                              accept="image/*"
+                                              variant="default"
+                                              isOptional={true}
+                                              icon={<UploadCloud className="w-8 h-8 text-green-500" />} 
+                                          />
+                                        </div>
                                       </div>
 
                                     <div className="flex justify-end pt-2">
