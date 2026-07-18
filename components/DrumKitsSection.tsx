@@ -153,8 +153,8 @@ const DrumKitsSection: React.FC<DrumKitsSectionProps> = ({ drumKits, onAddToCart
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                                             <div className="bg-black/70 backdrop-blur-sm border border-green-500/30 w-20 h-20 flex flex-col items-center justify-center rounded-sm group-hover:bg-black/80 group-hover:border-green-400/60 transition-all duration-300">
                                                 <span className="text-[8px] text-green-600 tracking-widest mb-0.5">SAMPLE</span>
-                                                <span className="text-3xl font-bold text-green-500 group-hover:text-green-400 tracking-tighter drop-shadow-[0_0_8px_rgba(0,0,0,0.8)] group-hover:drop-shadow-[0_0_12px_rgba(74,222,128,0.5)] transition-all">
-                                                    {kit.title.substring(0, 2).toUpperCase()}
+                                                <span className="text-xl font-bold text-green-500 group-hover:text-green-400 tracking-tighter drop-shadow-[0_0_8px_rgba(0,0,0,0.8)] group-hover:drop-shadow-[0_0_12px_rgba(74,222,128,0.5)] transition-all">
+                                                    {sampleCount}
                                                 </span>
                                             </div>
                                         </div>

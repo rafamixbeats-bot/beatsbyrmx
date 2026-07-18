@@ -541,177 +541,263 @@ useEffect(() => {
             if (!ctx) throw new Error('Canvas not supported');
 
             const sampleCount = kit.samples?.length || 0;
+            const displayTitle = kit.title.toUpperCase().replace(/[^A-Z0-9 _]/g, '').trim();
 
-            // === BACKGROUND ===
-            ctx.fillStyle = '#000000';
+            // === BACKGROUND - dark lab environment ===
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+            bgGrad.addColorStop(0, '#1a1a1a');
+            bgGrad.addColorStop(0.5, '#0a0a0a');
+            bgGrad.addColorStop(1, '#111111');
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, w, h);
 
-            // Grid overlay (20px)
-            ctx.strokeStyle = 'rgba(74, 222, 128, 0.08)';
+            // Subtle grid
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.03)';
             ctx.lineWidth = 0.5;
             for (let i = 0; i < w; i += 20) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
             for (let i = 0; i < h; i += 20) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
 
-            // === OUTER BORDER ===
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(0, 0, w, h);
-
-            // === TOP HEADER BAR (LAB-XXX + SAMPLES) ===
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.05)';
-            ctx.fillRect(0, 0, w, 60);
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(w, 60); ctx.stroke();
-
-            // Checkbox
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(25, 20, 16, 16);
-
-            // LAB-XXX
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
-            ctx.font = 'bold 11px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('LAB-001', 55, 33);
-
-            // Green dot + SAMPLES
-            ctx.fillStyle = '#22c55e';
-            ctx.beginPath(); ctx.arc(w - 85, 28, 4, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
-            ctx.font = 'bold 11px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText(`${sampleCount} SAMPLES`, w - 75, 33);
-
-            // === TITLE ===
+            // === TITLE SECTION ===
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 48px monospace';
-            ctx.textAlign = 'left';
-            ctx.shadowColor = 'rgba(74, 222, 128, 0.15)';
-            ctx.shadowBlur = 10;
-            const displayTitle = kit.title.toUpperCase();
-            if (displayTitle.length > 16) {
-                const words = displayTitle.split(/[\s_]+/).filter(Boolean);
-                const mid = Math.ceil(words.length / 2);
-                const line1 = words.slice(0, mid).join(' ');
-                const line2 = words.slice(mid).join(' ');
-                ctx.fillText(line1, 50, 130);
-                ctx.fillText(line2, 50, 185);
-            } else {
-                ctx.fillText(displayTitle, 50, 155);
-            }
+            ctx.shadowColor = 'rgba(74, 222, 128, 0.3)';
+            ctx.shadowBlur = 15;
+            ctx.font = 'bold 72px monospace';
+            // First word big
+            const titleWords = displayTitle.split(/[\s_]+/).filter(Boolean);
+            ctx.fillText(titleWords[0] || 'SOUND', w / 2, 100);
             ctx.shadowBlur = 0;
 
-            // === DESCRIPTION LINES ===
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.5)';
-            ctx.font = '13px monospace';
-            const descY = displayTitle.length > 16 ? 220 : 185;
-            ctx.fillText(`// ${sampleCount} SAMPLES LOADED`, 50, descY);
-            ctx.fillText('// FORMAT: WAV + MP3', 50, descY + 22);
-            ctx.fillText('// ROYALTY FREE', 50, descY + 44);
+            // Subtitle
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.font = '18px monospace';
+            ctx.fillText(displayTitle, w / 2, 135);
 
-            // === MONITOR BOX (waveform) ===
-            const monX = 50;
-            const monY = descY + 70;
-            const monW = w - 100;
-            const monH = 180;
+            // === CRT MONITOR (center piece) ===
+            const monX = 100, monY = 170, monW = 400, monH = 300;
 
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.04)';
+            // Monitor outer frame (3D box look)
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(monX - 15, monY - 15, monW + 30, monH + 50);
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(monX - 15, monY - 15, monW + 30, monH + 50);
+
+            // Monitor screen bezel
+            ctx.fillStyle = '#0d0d0d';
             ctx.fillRect(monX, monY, monW, monH);
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.2)';
             ctx.lineWidth = 1;
             ctx.strokeRect(monX, monY, monW, monH);
 
-            // Waveform
+            // Screen glow
+            const screenGrad = ctx.createRadialGradient(monX + monW/2, monY + monH/2, 0, monX + monW/2, monY + monH/2, monW/2);
+            screenGrad.addColorStop(0, 'rgba(34, 197, 94, 0.05)');
+            screenGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = screenGrad;
+            ctx.fillRect(monX, monY, monW, monH);
+
+            // ECG line inside monitor
             ctx.beginPath();
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 2;
-            ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
-            ctx.shadowBlur = 4;
-            const waveY = monY + monH / 2;
-            ctx.moveTo(monX + 20, waveY);
-            for (let x = monX + 20; x < monX + monW - 20; x += 2) {
-                const progress = (x - monX - 20) / (monW - 40);
-                let y = waveY;
-                const pos = (progress * 5) % 1;
-                if (pos > 0.1 && pos < 0.14) y = waveY - 5;
-                else if (pos > 0.14 && pos < 0.18) y = waveY + 3;
-                else if (pos > 0.18 && pos < 0.22) y = waveY - 30;
-                else if (pos > 0.22 && pos < 0.26) y = waveY + 18;
-                else if (pos > 0.26 && pos < 0.3) y = waveY - 3;
-                else if (pos > 0.4 && pos < 0.5) y = waveY - 8;
-                else if (pos > 0.6 && pos < 0.65) y = waveY + 4;
+            ctx.shadowColor = 'rgba(34, 197, 94, 0.8)';
+            ctx.shadowBlur = 8;
+            const ecgY = monY + monH / 2;
+            ctx.moveTo(monX + 15, ecgY);
+            for (let x = monX + 15; x < monX + monW - 15; x += 2) {
+                const progress = (x - monX) / monW;
+                let y = ecgY;
+                const pos = (progress * 6) % 1;
+                if (pos > 0.08 && pos < 0.12) y = ecgY - 8;
+                else if (pos > 0.12 && pos < 0.15) y = ecgY + 5;
+                else if (pos > 0.15 && pos < 0.2) y = ecgY - 50;
+                else if (pos > 0.2 && pos < 0.24) y = ecgY + 35;
+                else if (pos > 0.24 && pos < 0.27) y = ecgY - 6;
+                else if (pos > 0.27 && pos < 0.3) y = ecgY;
+                else if (pos > 0.35 && pos < 0.45) y = ecgY - 12;
+                else if (pos > 0.5 && pos < 0.55) y = ecgY + 6;
                 ctx.lineTo(x, y);
             }
             ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // === BOTTOM SECTION ===
-            const bottomY = monY + monH + 30;
+            // Monitor stand
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(monX + monW/2 - 30, monY + monH + 15, 60, 20);
+            ctx.fillRect(monX + monW/2 - 60, monY + monH + 30, 120, 8);
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(monX + monW/2 - 30, monY + monH + 15, 60, 20);
+            ctx.strokeRect(monX + monW/2 - 60, monY + monH + 30, 120, 8);
 
-            // Kit name again
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 36px monospace';
-            ctx.textAlign = 'left';
-            if (displayTitle.length > 16) {
-                const words = displayTitle.split(/[\s_]+/).filter(Boolean);
-                const mid = Math.ceil(words.length / 2);
-                ctx.fillText(words.slice(0, mid).join(' '), 50, bottomY + 30);
-                ctx.fillText(words.slice(mid).join(' '), 50, bottomY + 65);
-            } else {
-                ctx.fillText(displayTitle, 50, bottomY + 35);
+            // === IV BAG / SONDA (right side) ===
+            const ivX = monX + monW + 60, ivY = monY + 20;
+
+            // IV bag body
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
+            ctx.beginPath();
+            ctx.roundRect(ivX, ivY, 80, 140, 8);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(ivX, ivY, 80, 140, 8);
+            ctx.stroke();
+
+            // Liquid level (green)
+            const liquidH = 90;
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.25)';
+            ctx.beginPath();
+            ctx.roundRect(ivX + 5, ivY + 50, 70, liquidH, 4);
+            ctx.fill();
+
+            // Liquid glow
+            const liqGrad = ctx.createLinearGradient(ivX, ivY + 50, ivX, ivY + 50 + liquidH);
+            liqGrad.addColorStop(0, 'rgba(34, 197, 94, 0.1)');
+            liqGrad.addColorStop(0.5, 'rgba(34, 197, 94, 0.3)');
+            liqGrad.addColorStop(1, 'rgba(34, 197, 94, 0.15)');
+            ctx.fillStyle = liqGrad;
+            ctx.beginPath();
+            ctx.roundRect(ivX + 5, ivY + 50, 70, liquidH, 4);
+            ctx.fill();
+
+            // IV bag label
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.5)';
+            ctx.font = '7px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('MELODY_VITALS', ivX + 40, ivY + 15);
+
+            // Measurement lines
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < 5; i++) {
+                const ly = ivY + 55 + i * 18;
+                ctx.beginPath(); ctx.moveTo(ivX + 60, ly); ctx.lineTo(ivX + 75, ly); ctx.stroke();
             }
 
-            // Description
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
-            ctx.font = '10px monospace';
-            const tagY = displayTitle.length > 16 ? bottomY + 90 : bottomY + 60;
-            ctx.fillText(kit.description || 'COMPOUND DATA PENDING ANALYSIS.', 50, tagY);
+            // IV tube going down
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(ivX + 40, ivY + 140);
+            ctx.quadraticCurveTo(ivX + 40, ivY + 200, monX + monW - 20, monY + monH - 30);
+            ctx.stroke();
 
-            // TAG badge
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-            const tagText = kit.tags?.[0]?.toUpperCase() || 'TRAP';
-            const tagTextW = ctx.measureText(tagText).width;
-            ctx.fillRect(50, tagY + 10, tagTextW + 16, 20);
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
-            ctx.strokeRect(50, tagY + 10, tagTextW + 16, 20);
+            // Drip drops
             ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
-            ctx.font = '9px monospace';
-            ctx.fillText(tagText, 58, tagY + 24);
+            ctx.beginPath(); ctx.arc(ivX + 40, ivY + 155, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(ivX + 42, ivY + 170, 2, 0, Math.PI * 2); ctx.fill();
 
-            // === PRICE BAR ===
-            const priceBarY = h - 80;
-            ctx.strokeStyle = 'rgba(34, 197, 94, 0.15)';
+            // === ECG LINE (left side, vertical) ===
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(34, 197, 94, 0.5)';
+            ctx.shadowBlur = 6;
+            ctx.moveTo(30, monY);
+            for (let y = monY; y < monY + monH; y += 2) {
+                const progress = (y - monY) / monH;
+                let x = 30;
+                const pos = (progress * 4) % 1;
+                if (pos > 0.3 && pos < 0.35) x = 20;
+                else if (pos > 0.35 && pos < 0.4) x = 40;
+                else if (pos > 0.4 && pos < 0.45) x = 10;
+                else if (pos > 0.45 && pos < 0.5) x = 45;
+                else if (pos > 0.5 && pos < 0.55) x = 25;
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // === INFO PANELS (bottom) ===
+            const panelY = 560;
+
+            // Left panel - system info
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.04)';
+            ctx.fillRect(40, panelY, 340, 160);
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.3)';
             ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(0, priceBarY); ctx.lineTo(w, priceBarY); ctx.stroke();
+            ctx.strokeRect(40, panelY, 340, 160);
 
-            // "COMPRA VIA LOT"
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.35)';
-            ctx.font = '9px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('COMPRA VIA LOT', 50, priceBarY + 20);
+            // Brackets
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(45, panelY + 20); ctx.lineTo(45, panelY + 5); ctx.lineTo(60, panelY + 5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(45, panelY + 140); ctx.lineTo(45, panelY + 155); ctx.lineTo(60, panelY + 155); ctx.stroke();
 
-            // Price - exact value
-            ctx.fillStyle = '#22c55e';
-            ctx.font = 'bold 32px monospace';
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.5)';
+            ctx.font = '11px monospace';
             ctx.textAlign = 'left';
+            const infoLines = [
+                `cite: SYSTEM:  RMX_LAB`,
+                `cite: CREATOR: RMX`,
+                ``,
+                `cite: CONTENT: ${sampleCount}_SAMPLES`,
+                `cite: COMPATIBILITY: ALL_DAWS`,
+                `cite: FILE_TYPE: 24-BIT_WAV`,
+                `cite: ROYALTY: ROYALTIES_FREE`,
+            ];
+            infoLines.forEach((line, i) => {
+                ctx.fillText(line, 60, panelY + 25 + i * 18);
+            });
+
+            // Right panel - acquire button
+            const rpX = 410;
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.04)';
+            ctx.fillRect(rpX, panelY, 340, 160);
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.3)';
+            ctx.strokeRect(rpX, panelY, 340, 160);
+
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.5)';
+            ctx.font = '11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('cite: SOUND KIT INFO _X', rpX + 170, panelY + 25);
+
+            // Acquire button (purple)
+            ctx.fillStyle = 'rgba(138, 43, 226, 0.7)';
+            ctx.beginPath();
+            ctx.roundRect(rpX + 40, panelY + 50, 260, 45, 4);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(138, 43, 226, 0.9)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(rpX + 40, panelY + 50, 260, 45, 4);
+            ctx.stroke();
+
+            // Cart icon (simple)
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '20px monospace';
+            ctx.fillText('\u{1F6D2}', rpX + 170, panelY + 78);
+
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.5)';
+            ctx.font = '11px monospace';
+            ctx.fillText('_ACQUIRE_KIT_V1_', rpX + 170, panelY + 120);
+
+            // Price
             const price = kit.price || 0;
             const priceInt = Math.floor(price);
             const priceDec = Math.round((price - priceInt) * 100);
-            ctx.fillText(`R$ ${priceInt},${String(priceDec).padStart(2, '0')}`, 50, priceBarY + 55);
+            ctx.fillStyle = '#22c55e';
+            ctx.font = 'bold 28px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`R$ ${priceInt},${String(priceDec).padStart(2, '0')}`, rpX + 170, panelY + 150);
 
             // === CORNER MARKERS ===
-            const cs = 12;
-            ctx.strokeStyle = 'rgba(74, 222, 128, 0.5)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(8, 8 + cs); ctx.lineTo(8, 8); ctx.lineTo(8 + cs, 8); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(w - 8 - cs, 8); ctx.lineTo(w - 8, 8); ctx.lineTo(w - 8, 8 + cs); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(8, h - 8 - cs); ctx.lineTo(8, h - 8); ctx.lineTo(8 + cs, h - 8); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(w - 8 - cs, h - 8); ctx.lineTo(w - 8, h - 8); ctx.lineTo(w - 8, h - 8 - cs); ctx.stroke();
+            const cs = 15;
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(15, 15 + cs); ctx.lineTo(15, 15); ctx.lineTo(15 + cs, 15); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(w - 15 - cs, 15); ctx.lineTo(w - 15, 15); ctx.lineTo(w - 15, 15 + cs); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(15, h - 15 - cs); ctx.lineTo(15, h - 15); ctx.lineTo(15 + cs, h - 15); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(w - 15 - cs, h - 15); ctx.lineTo(w - 15, h - 15); ctx.lineTo(w - 15, h - 15 - cs); ctx.stroke();
 
-            // Scanline sweep effect
-            ctx.fillStyle = 'rgba(74, 222, 128, 0.02)';
-            ctx.fillRect(0, 0, w, 2);
+            // Reflection at bottom
+            const reflGrad = ctx.createLinearGradient(0, h - 30, 0, h);
+            reflGrad.addColorStop(0, 'rgba(74, 222, 128, 0)');
+            reflGrad.addColorStop(1, 'rgba(74, 222, 128, 0.03)');
+            ctx.fillStyle = reflGrad;
+            ctx.fillRect(0, h - 30, w, 30);
 
             const blob = await new Promise<Blob>((resolve) => {
                 canvas.toBlob((b) => resolve(b!), 'image/png', 1.0);
