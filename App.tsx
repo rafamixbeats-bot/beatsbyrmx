@@ -214,27 +214,42 @@ const App = () => {
   // Load data from Supabase
   useEffect(() => {
     const loadData = async () => {
+      const maxAttempts = 4;
       try {
-        const [beatsRes, kitsRes, samplesRes, socialsRes, settingsRes] = await Promise.all([
-          supabase.from('beats').select('*').order('created_at', { ascending: false }),
-          supabase.from('drum_kits').select('*').order('created_at', { ascending: false }),
-          supabase.from('drum_kit_samples').select('*').order('sort_order', { ascending: true }),
-          supabase.from('settings').select('*').eq('key', 'social_links').single(),
-          supabase.from('settings').select('*').eq('key', 'admin_settings').single(),
-        ]);
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const [beatsRes, kitsRes, samplesRes, socialsRes, settingsRes] = await Promise.all([
+              supabase.from('beats').select('*').order('created_at', { ascending: false }),
+              supabase.from('drum_kits').select('*').order('created_at', { ascending: false }),
+              supabase.from('drum_kit_samples').select('*').order('sort_order', { ascending: true }),
+              supabase.from('settings').select('*').eq('key', 'social_links').single(),
+              supabase.from('settings').select('*').eq('key', 'admin_settings').single(),
+            ]);
 
-        if (beatsRes.data) setBeats(beatsRes.data);
-        if (kitsRes.data) {
-          const kits = kitsRes.data.map(k => ({
-            ...k,
-            tags: k.tags || [],
-            samples: samplesRes.data ? samplesRes.data.filter((s: any) => s.pack_id === k.id) : []
-          }));
-          setDrumKits(kits);
+            const transient = !!beatsRes.error || !!kitsRes.error || !!samplesRes.error;
+            if (transient && attempt < maxAttempts) {
+              await new Promise(r => setTimeout(r, attempt * 2000));
+              continue;
+            }
+
+            if (beatsRes.data) setBeats(beatsRes.data);
+            if (kitsRes.data) {
+              const kits = kitsRes.data.map(k => ({
+                ...k,
+                tags: k.tags || [],
+                samples: samplesRes.data ? samplesRes.data.filter((s: any) => s.pack_id === k.id) : []
+              }));
+              setDrumKits(kits);
+            }
+            if (samplesRes.data) setDrumKitSamples(samplesRes.data);
+            if (socialsRes.data?.value) setSocialLinks(socialsRes.data.value);
+            if (settingsRes.data?.value) setAdminSettings(settingsRes.data.value);
+            return;
+          } catch (err) {
+            if (attempt >= maxAttempts) throw err;
+            await new Promise(r => setTimeout(r, attempt * 2000));
+          }
         }
-        if (samplesRes.data) setDrumKitSamples(samplesRes.data);
-        if (socialsRes.data?.value) setSocialLinks(socialsRes.data.value);
-        if (settingsRes.data?.value) setAdminSettings(settingsRes.data.value);
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
       } finally {
